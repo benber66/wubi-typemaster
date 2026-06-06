@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Application, Graphics, Text, Container } from 'pixi.js';
 import type { Invader } from '@/lib/game/word-invaders';
 
@@ -37,22 +37,26 @@ export function PixiInvaders({
   const cacheRef = useRef<Map<number, CachedSprite>>(new Map());
   const stageRef = useRef<Container | null>(null);
   const hudRef = useRef<Text | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const app = new Application();
+    const container = containerRef.current;
     const cache = cacheRef.current;
-    let cancelled = false;
+    const app = new Application();
+    appRef.current = app;
+    let destroyed = false;
+    const destroyOnce = () => {
+      if (destroyed) return;
+      destroyed = true;
+      try { app.destroy(true, { children: true }); } catch { /* ignore */ }
+    };
     void app.init({ width, height, background: BG_COLOR, antialias: true }).then(() => {
-      if (cancelled) {
-        app.destroy(true, { children: true });
+      if (!container.isConnected || destroyed) {
+        destroyOnce();
         return;
       }
-      if (!containerRef.current) {
-        app.destroy(true, { children: true });
-        return;
-      }
-      containerRef.current.appendChild(app.canvas);
+      container.appendChild(app.canvas);
       appRef.current = app;
       const stage = new Container();
       app.stage.addChild(stage);
@@ -66,17 +70,18 @@ export function PixiInvaders({
       app.stage.addChild(hud);
       hudRef.current = hud;
       onCanvasReady?.(app);
+    }).catch((err: unknown) => {
+      destroyOnce();
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Pixi 初始化失败: ${msg}`);
     });
     return () => {
-      cancelled = true;
+      destroyOnce();
       if (appRef.current === app) {
-        app.destroy(true, { children: true });
         appRef.current = null;
         stageRef.current = null;
         hudRef.current = null;
         cache.clear();
-      } else {
-        app.destroy(true, { children: true });
       }
     };
   }, [width, height, onCanvasReady]);
@@ -137,6 +142,17 @@ export function PixiInvaders({
       hudRef.current.text = `Score ${score}  Destroyed ${destroyed}`;
     }
   }, [score, destroyed]);
+
+  if (error) {
+    return (
+      <div
+        className="flex items-center justify-center rounded-md border bg-muted/30"
+        style={{ width, height }}
+      >
+        <p className="text-sm text-destructive">{error}</p>
+      </div>
+    );
+  }
 
   return <div ref={containerRef} className="rounded-md border" style={{ width, height }} />;
 }

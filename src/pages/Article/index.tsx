@@ -84,7 +84,6 @@ export function ArticlePage() {
   const [savedSessionId, setSavedSessionId] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const errorInfo = errors[errors.length - 1];
   const startTimeRef = useRef<number | null>(null);
   const isComposingRef = useRef<boolean>(false);
   const [typedPrefix, setTypedPrefix] = useState<string>('');
@@ -210,8 +209,9 @@ export function ArticlePage() {
   };
 
   const result = status === 'completed' ? getResult() : null;
-  const activeErrorChar = errorInfo?.expected ?? hintChar;
-  const activeErrorCode = errorInfo?.expectedCode ?? activeEntry.code ?? null;
+  const activeErrorChar = hintChar;
+  const activeErrorCode = hintChar ? getCharCode(hintChar) : null;
+  const activeErrorWords = hintChar ? getWordSuggestions(hintChar) : [];
 
   const liveWpm = useMemo(() => {
     const minutes = Math.max(elapsed / 60_000, 1 / 60_000);
@@ -305,7 +305,7 @@ export function ArticlePage() {
               <CodeHint
                 expectedChar={activeErrorChar}
                 expectedCode={activeErrorCode}
-                wordSuggestions={activeEntry.words}
+                wordSuggestions={activeErrorWords}
                 onDismiss={() => setHintChar(null)}
               />
             )}
