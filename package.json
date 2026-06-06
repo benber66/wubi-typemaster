@@ -36,6 +36,7 @@
     "test:e2e:ui": "playwright test --ui",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "serve-storybook": "node scripts/serve-storybook.mjs 6006",
     "build:win": "electron-vite build && electron-builder --win",
     "build:linux": "electron-vite build && electron-builder --linux",
     "build:mac": "electron-vite build && electron-builder --mac",
