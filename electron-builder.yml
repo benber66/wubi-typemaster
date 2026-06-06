@@ -4,7 +4,6 @@ copyright: Copyright © 2026 ${author}
 
 directories:
   buildResources: build
-  output: release
   output: release/${version}
 
 files:

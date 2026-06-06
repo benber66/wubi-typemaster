@@ -9,6 +9,9 @@ out/
 release/
 *.tsbuildinfo
 
+# electron-vite output
+/out/
+
 # Electron
 .cache/
 
