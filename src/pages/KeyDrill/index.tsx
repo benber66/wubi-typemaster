@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameSession } from '@/hooks/use-game-session';
 import { codeToLetter } from '@/lib/ime/key-utils';
+import { getPracticeLookup } from '@/lib/practice/lookup-bridge';
 import {
   INITIAL_DRILL_STATE,
   filterByKey,
@@ -15,34 +16,6 @@ import {
 } from '@/lib/game/key-drill';
 import type { WubiChar, WubiWord } from '@/lib/wubi/lookup';
 
-const SAMPLE_POOL: Array<WubiChar | WubiWord> = [
-  { char: '我', code: 'trd', weight: 100, codeLength: 3, isCore: true },
-  { char: '你', code: 'wqrq', weight: 100, codeLength: 4, isCore: true },
-  { char: '他', code: 'wb', weight: 100, codeLength: 2, isCore: true },
-  { char: '的', code: 'r', weight: 200, codeLength: 1, isCore: true },
-  { char: '了', code: 'b', weight: 200, codeLength: 1, isCore: true },
-  { char: '在', code: 'd', weight: 200, codeLength: 1, isCore: true },
-  { char: '是', code: 'j', weight: 200, codeLength: 1, isCore: true },
-  { char: '不', code: 'i', weight: 200, codeLength: 1, isCore: true },
-  { char: '人', code: 'w', weight: 200, codeLength: 1, isCore: true },
-  { char: '有', code: 'e', weight: 200, codeLength: 1, isCore: true },
-  { char: '中', code: 'k', weight: 200, codeLength: 1, isCore: true },
-  { char: '国', code: 'lg', weight: 200, codeLength: 2, isCore: true },
-  { char: '大', code: 'dd', weight: 200, codeLength: 2, isCore: true },
-  { char: '为', code: 'yl', weight: 200, codeLength: 2, isCore: true },
-  { char: '上', code: 'h', weight: 200, codeLength: 1, isCore: true },
-  { char: '下', code: 'gh', weight: 200, codeLength: 2, isCore: true },
-  { char: '个', code: 'wh', weight: 200, codeLength: 2, isCore: true },
-  { char: '们', code: 'wu', weight: 200, codeLength: 2, isCore: true },
-  { char: '来', code: 'go', weight: 200, codeLength: 2, isCore: true },
-  { char: '时', code: 'jf', weight: 200, codeLength: 2, isCore: true },
-  { word: '我们', code: 'trwu', weight: 300, length: 2, isCore: true },
-  { word: '什么', code: 'wftc', weight: 300, length: 2, isCore: true },
-  { word: '知道', code: 'tdut', weight: 300, length: 2, isCore: true },
-  { word: '中国', code: 'klp', weight: 300, length: 2, isCore: true },
-  { word: '他们', code: 'wbwu', weight: 300, length: 2, isCore: true },
-];
-
 export function KeyDrillPage() {
   const [targetKeyCount, setTargetKeyCount] = useState(3);
   const [queueSize, setQueueSize] = useState(20);
@@ -51,14 +24,17 @@ export function KeyDrillPage() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleStart = (): void => {
-    // 真正生成弱键一次：临时 hash 假数据模拟
+    const lookup = getPracticeLookup();
+    const chars = lookup.randomCoreChars(30);
+    const words = lookup.randomCoreWords(20, 2);
+    const pool: Array<WubiChar | WubiWord> = [...chars, ...words];
     const allKeys = 'abcdefghijklmnopqrstuvwxyz'.split('');
     const picked: string[] = [];
     for (let i = 0; i < targetKeyCount; i++) {
       picked.push(allKeys[(Date.now() + i * 7) % 26]!);
     }
     setWeakKeys(picked);
-    const candidates = filterByKey(SAMPLE_POOL, picked);
+    const candidates = filterByKey(pool, picked);
     const queue = pickDrillQueue(candidates, queueSize);
     setState({
       ...INITIAL_DRILL_STATE,
