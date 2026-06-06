@@ -42,6 +42,7 @@ export interface GameState {
   endTime: number | null;
   spawnTimer: number; // ms since last spawn
   tickMs: number; // virtual clock
+  won: boolean;
 }
 
 export interface GameActions {

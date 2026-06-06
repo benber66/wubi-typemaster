@@ -34,6 +34,7 @@ interface GameState {
   endTime: number | null;
   spawnTimer: number;
   tickMs: number;
+  won: boolean;
 }
 
 const initialState: GameState = {
@@ -49,6 +50,7 @@ const initialState: GameState = {
   endTime: null,
   spawnTimer: 0,
   tickMs: 0,
+  won: false,
 };
 
 function spawnBubble(pool: Array<WubiChar | WubiWord>, config: BubbleConfig, id: number): Bubble | null {
@@ -70,6 +72,7 @@ export function BubblePage() {
   const [state, setState] = useState<GameState>(initialState);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [missLimit] = useState(20);
+  const DESTROY_TARGET = 30;
   const statusRef = useRef(state.status);
   statusRef.current = state.status;
   const idRef = useRef(1);
@@ -107,14 +110,18 @@ export function BubblePage() {
           if (b) newBubbles.push(b);
           spawnTimer = 0;
         }
+        const lost = escaped > 0 && (s.escaped + escaped) >= missLimit;
+        const won = s.popped >= DESTROY_TARGET;
+        const gameover = lost || won;
         return {
           ...s,
           bubbles: newBubbles,
           escaped: s.escaped + escaped,
           spawnTimer,
           tickMs: s.tickMs + deltaMs,
-          status: escaped > 0 && (s.escaped + escaped) >= missLimit ? 'gameover' : s.status,
-          endTime: escaped > 0 && (s.escaped + escaped) >= missLimit ? Date.now() : s.endTime,
+          status: gameover ? 'gameover' : s.status,
+          endTime: gameover ? Date.now() : s.endTime,
+          won: won || s.won,
         };
       });
     }, 100);
@@ -162,7 +169,13 @@ export function BubblePage() {
       } else if (noBubblesMatch(s.bubbles, next)) {
         typed = '';
       }
-      return { ...s, typed, bubbles, score, popped, totalAttempts, correctAttempts };
+      const won = popped >= DESTROY_TARGET;
+      return {
+        ...s, typed, bubbles, score, popped, totalAttempts, correctAttempts,
+        status: won ? 'gameover' : s.status,
+        endTime: won ? Date.now() : s.endTime,
+        won: won || s.won,
+      };
     });
   };
 
@@ -193,7 +206,7 @@ export function BubblePage() {
     <div className="mx-auto max-w-5xl space-y-4 p-8">
       <header>
         <h1 className="text-3xl font-bold">Bubble</h1>
-        <p className="mt-1 text-muted-foreground">从下方升起的气泡，在逃到顶部前打出五笔码 · 漏 {missLimit} 个结束</p>
+        <p className="mt-1 text-muted-foreground">从下方升起的气泡，在逃到顶部前打出五笔码 · 漏 {missLimit} 个结束 · 击落 {DESTROY_TARGET} 个获胜</p>
       </header>
 
       {state.status === 'idle' && (
@@ -205,7 +218,7 @@ export function BubblePage() {
             <ul className="list-disc pl-5 text-sm text-muted-foreground">
               <li>单字/词从底部上升，蓝色高亮前缀匹配</li>
               <li>完全匹配后气泡爆裂（+10/字）</li>
-              <li>漏 {missLimit} 个 → Game Over</li>
+              <li>漏 {missLimit} 个 → Game Over · 击落 {DESTROY_TARGET} 个获胜</li>
             </ul>
             <Button onClick={handleStart} size="lg" className="w-full">开始游戏</Button>
           </CardContent>
@@ -232,7 +245,7 @@ export function BubblePage() {
                   </div>
                   <div>
                     <div className="text-muted-foreground">击破</div>
-                    <div className="text-lg font-semibold">{state.popped}</div>
+                    <div className="text-lg font-semibold">{state.popped} / {DESTROY_TARGET}</div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">逃走</div>
@@ -283,7 +296,7 @@ export function BubblePage() {
       {state.status === 'gameover' && (
         <Card>
           <CardHeader>
-            <CardTitle>Game Over</CardTitle>
+            <CardTitle>{state.won ? '你赢了！' : 'Game Over'}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-3 gap-3 text-sm">

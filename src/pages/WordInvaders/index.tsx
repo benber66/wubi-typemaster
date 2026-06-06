@@ -24,6 +24,8 @@ import type { WubiChar, WubiWord } from '@/lib/wubi/lookup';
 
 type PoolEntry = WubiChar | WubiWord;
 
+const DESTROY_TARGET = 30;
+
 const initialState: GameState = {
   status: 'idle',
   invaders: [],
@@ -37,6 +39,7 @@ const initialState: GameState = {
   endTime: null,
   spawnTimer: 0,
   tickMs: 0,
+  won: false,
 };
 
 function spawnInvader(pool: PoolEntry[], config: InvaderConfig, id: number): Invader | null {
@@ -93,14 +96,19 @@ export function WordInvadersPage() {
           if (inv) newInvaders.push(inv);
           spawnTimer = 0;
         }
+        const totalMissed = s.missed + missed;
+        const lost = totalMissed >= missLimit;
+        const won = s.destroyed >= DESTROY_TARGET;
+        const gameover = lost || won;
         return {
           ...s,
           invaders: newInvaders,
-          missed: s.missed + missed,
+          missed: totalMissed,
           spawnTimer,
           tickMs: s.tickMs + deltaMs,
-          status: missed > 0 && (s.missed + missed) >= missLimit ? 'gameover' : s.status,
-          endTime: missed > 0 && (s.missed + missed) >= missLimit ? Date.now() : s.endTime,
+          status: gameover ? 'gameover' : s.status,
+          endTime: gameover ? Date.now() : s.endTime,
+          won: won || s.won,
         };
       });
     }, 100);
@@ -148,7 +156,13 @@ export function WordInvadersPage() {
       } else if (noInvadersMatch(s.invaders, next)) {
         typed = '';
       }
-      return { ...s, typed, invaders, score, destroyed, totalAttempts, correctAttempts };
+      const won = destroyed >= DESTROY_TARGET;
+      return {
+        ...s, typed, invaders, score, destroyed, totalAttempts, correctAttempts,
+        status: won ? 'gameover' : s.status,
+        endTime: won ? Date.now() : s.endTime,
+        won: won || s.won,
+      };
     });
   };
 
@@ -178,7 +192,7 @@ export function WordInvadersPage() {
     <div className="mx-auto max-w-5xl space-y-4 p-8">
       <header>
         <h1 className="text-3xl font-bold">Word Invaders</h1>
-        <p className="mt-1 text-muted-foreground">五笔码打单词/字，击落入侵者 · 漏 {missLimit} 个结束</p>
+        <p className="mt-1 text-muted-foreground">五笔码打单词/字，击落入侵者 · 漏 {missLimit} 个结束 · 击落 {DESTROY_TARGET} 个获胜</p>
       </header>
 
       {state.status === 'idle' && (
@@ -190,7 +204,7 @@ export function WordInvadersPage() {
             <ul className="list-disc pl-5 text-sm text-muted-foreground">
               <li>单字/词组从顶部下落，输入对应五笔码</li>
               <li>前缀匹配高亮蓝色，完全匹配后击落（+10/字）</li>
-              <li>漏 {missLimit} 个 → Game Over</li>
+              <li>漏 {missLimit} 个 → Game Over · 击落 {DESTROY_TARGET} 个获胜</li>
             </ul>
             <Button onClick={handleStart} size="lg" className="w-full">开始游戏</Button>
           </CardContent>
@@ -217,7 +231,7 @@ export function WordInvadersPage() {
                   </div>
                   <div>
                     <div className="text-muted-foreground">击落</div>
-                    <div className="text-lg font-semibold">{state.destroyed}</div>
+                    <div className="text-lg font-semibold">{state.destroyed} / {DESTROY_TARGET}</div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">漏掉</div>
@@ -275,7 +289,7 @@ export function WordInvadersPage() {
       {state.status === 'gameover' && (
         <Card>
           <CardHeader>
-            <CardTitle>Game Over</CardTitle>
+            <CardTitle>{state.won ? '你赢了！' : 'Game Over'}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-3 gap-3 text-sm">
