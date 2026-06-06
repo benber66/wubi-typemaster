@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PixiBubbles } from '@/components/PixiBubbles';
@@ -63,15 +63,35 @@ export function BubblePage() {
   const config: BubbleConfig = useMemo(() => ({ ...DEFAULT_BUBBLE_CONFIG, width: 720, height: 480 }), []);
   const pool = useMemo(() => {
     const lookup = getPracticeLookup();
-    return lookup.randomCoreWords(20, 2) as Array<WubiChar | WubiWord>;
+    const chars = lookup.randomCoreChars(10);
+    const words = lookup.randomCoreWords(20, 2);
+    return [...chars, ...words] as Array<WubiChar | WubiWord>;
   }, []);
   const [state, setState] = useState<GameState>(initialState);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [missLimit] = useState(20);
+  const statusRef = useRef(state.status);
+  statusRef.current = state.status;
   const idRef = useRef(1);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (state.status === 'running') inputRef.current?.focus();
   }, [state.status]);
+
+  useEffect(() => {
+    if (countdown === null || countdown <= 0) return;
+    const id = setTimeout(() => {
+      const next = countdown - 1;
+      if (next <= 0) {
+        setCountdown(null);
+        setState((s) => ({ ...s, status: 'running', startTime: Date.now() }));
+      } else {
+        setCountdown(next);
+      }
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [countdown]);
 
   useEffect(() => {
     if (state.status !== 'running') return;
@@ -93,65 +113,62 @@ export function BubblePage() {
           escaped: s.escaped + escaped,
           spawnTimer,
           tickMs: s.tickMs + deltaMs,
-          status: escaped > 0 && (s.escaped + escaped) >= 10 ? 'gameover' : s.status,
-          endTime: escaped > 0 && (s.escaped + escaped) >= 10 ? Date.now() : s.endTime,
+          status: escaped > 0 && (s.escaped + escaped) >= missLimit ? 'gameover' : s.status,
+          endTime: escaped > 0 && (s.escaped + escaped) >= missLimit ? Date.now() : s.endTime,
         };
       });
     }, 100);
     return () => clearInterval(id);
-  }, [state.status, config, pool]);
+  }, [state.status, config, pool, missLimit]);
 
   const handleStart = (): void => {
     idRef.current = 1;
-    setState({ ...initialState, status: 'running', startTime: Date.now() });
+    setState({ ...initialState, startTime: Date.now() });
+    setCountdown(3);
   };
 
-  const handleKey = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>): void => {
-      if (state.status !== 'running') return;
-      if (e.key === 'Backspace') {
-        e.preventDefault();
-        setState((s) => ({ ...s, typed: s.typed.slice(0, -1) }));
-        return;
-      }
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        setState((s) => ({ ...s, status: 'paused' }));
-        return;
-      }
-      // e.code handles both non-IME a-z and IME-processed letters (where e.key="Process").
-      const letter = codeToLetter(e.code) ?? e.key.toLowerCase();
-      if (!letter || letter.length !== 1 || !/[a-z]/.test(letter)) return;
+  const handleKey = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (statusRef.current !== 'running') return;
+    if (e.key === 'Backspace') {
       e.preventDefault();
-      const ch = letter;
-      setState((s) => {
-        if (s.status !== 'running') return s;
-        const next = s.typed + ch;
-        const match = findBubbleMatch(s.bubbles, next);
-        const totalAttempts = s.totalAttempts + 1;
-        let correctAttempts = s.correctAttempts;
-        let bubbles = s.bubbles;
-        let score = s.score;
-        let popped = s.popped;
-        let typed = next;
-        if (match && isBubbleExactMatch(match, next)) {
-          correctAttempts += 1;
-          score += match.text.length * 10;
-          popped += 1;
-          bubbles = s.bubbles.filter((b) => b.id !== match.id);
-          typed = '';
-        } else if (noBubblesMatch(s.bubbles, next)) {
-          typed = '';
-        }
-        return { ...s, typed, bubbles, score, popped, totalAttempts, correctAttempts };
-      });
-    },
-    [state.status],
-  );
+      setState((s) => ({ ...s, typed: s.typed.slice(0, -1) }));
+      return;
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setState((s) => ({ ...s, status: 'paused' }));
+      return;
+    }
+    const letter = codeToLetter(e.code) ?? e.key.toLowerCase();
+    if (!letter || letter.length !== 1 || !/[a-z]/.test(letter)) return;
+    e.preventDefault();
+    const ch = letter;
+    setState((s) => {
+      if (s.status !== 'running') return s;
+      const next = s.typed + ch;
+      const match = findBubbleMatch(s.bubbles, next);
+      const totalAttempts = s.totalAttempts + 1;
+      let correctAttempts = s.correctAttempts;
+      let bubbles = s.bubbles;
+      let score = s.score;
+      let popped = s.popped;
+      let typed = next;
+      if (match && isBubbleExactMatch(match, next)) {
+        correctAttempts += 1;
+        score += match.text.length * 10;
+        popped += 1;
+        bubbles = s.bubbles.filter((b) => b.id !== match.id);
+        typed = '';
+      } else if (noBubblesMatch(s.bubbles, next)) {
+        typed = '';
+      }
+      return { ...s, typed, bubbles, score, popped, totalAttempts, correctAttempts };
+    });
+  };
 
-  const handleCompositionEnd = useCallback(() => {
-    setState((s) => (s.typed === '' ? s : { ...s, typed: '' }));
-  }, []);
+  const handleCompositionEnd = () => {
+    // Ignore IME composition — game uses direct key input only.
+  };
 
   const accuracy = getAccuracy(state.correctAttempts, state.totalAttempts);
   const durationMs =
@@ -176,7 +193,7 @@ export function BubblePage() {
     <div className="mx-auto max-w-5xl space-y-4 p-8">
       <header>
         <h1 className="text-3xl font-bold">Bubble</h1>
-        <p className="mt-1 text-muted-foreground">从下方升起的气泡，在逃到顶部前打出五笔码 · 漏 10 个结束</p>
+        <p className="mt-1 text-muted-foreground">从下方升起的气泡，在逃到顶部前打出五笔码 · 漏 {missLimit} 个结束</p>
       </header>
 
       {state.status === 'idle' && (
@@ -186,61 +203,78 @@ export function BubblePage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <ul className="list-disc pl-5 text-sm text-muted-foreground">
-              <li>2 字词组从底部上升，蓝色高亮前缀匹配</li>
+              <li>单字/词从底部上升，蓝色高亮前缀匹配</li>
               <li>完全匹配后气泡爆裂（+10/字）</li>
-              <li>漏 10 个 → Game Over</li>
+              <li>漏 {missLimit} 个 → Game Over</li>
             </ul>
             <Button onClick={handleStart} size="lg" className="w-full">开始游戏</Button>
           </CardContent>
         </Card>
       )}
 
-      {state.status !== 'idle' && (
+      {(countdown !== null || state.status !== 'idle') && (
         <Card>
           <CardContent className="space-y-3 py-6">
-            <div className="grid grid-cols-4 gap-3 text-sm">
-              <div>
-                <div className="text-muted-foreground">得分</div>
-                <div className="text-lg font-semibold">{state.score}</div>
+            {countdown !== null && (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="text-6xl font-bold text-primary animate-pulse">{countdown}</div>
+                  <div className="mt-2 text-sm text-muted-foreground">准备...</div>
+                </div>
               </div>
-              <div>
-                <div className="text-muted-foreground">击破</div>
-                <div className="text-lg font-semibold">{state.popped}</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground">逃走</div>
-                <div className="text-lg font-semibold text-destructive">{state.escaped} / 10</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground">WPM</div>
-                <div className="text-lg font-semibold">{wpm}</div>
-              </div>
-            </div>
-            <PixiBubbles
-              width={config.width}
-              height={config.height}
-              bubbles={state.bubbles}
-              typed={state.typed}
-            />
-            <input
-              ref={inputRef}
-              value={state.typed}
-              onKeyDown={handleKey}
-              onCompositionEnd={handleCompositionEnd}
-              onChange={() => undefined}
-              readOnly
-              className="w-full rounded-md border bg-card px-3 py-2 font-mono text-lg tracking-widest"
-              placeholder="在此输入五笔码..."
-              autoFocus
-              aria-label="五笔码输入"
-            />
-            {state.status === 'paused' && (
-              <div className="rounded-md bg-muted p-3 text-center">
-                已暂停
-                <Button onClick={() => setState((s) => ({ ...s, status: 'running' }))} className="ml-3" size="sm">
-                  继续
-                </Button>
-              </div>
+            )}
+            {countdown === null && state.status !== 'idle' && (
+              <>
+                <div className="grid grid-cols-4 gap-3 text-sm">
+                  <div>
+                    <div className="text-muted-foreground">得分</div>
+                    <div className="text-lg font-semibold">{state.score}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">击破</div>
+                    <div className="text-lg font-semibold">{state.popped}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">逃走</div>
+                    <div className="text-lg font-semibold text-destructive">{state.escaped} / {missLimit}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">WPM</div>
+                    <div className="text-lg font-semibold">{wpm}</div>
+                  </div>
+                </div>
+                <PixiBubbles
+                  width={config.width}
+                  height={config.height}
+                  bubbles={state.bubbles}
+                  typed={state.typed}
+                />
+                <input
+                  ref={inputRef}
+                  value={state.typed}
+                  onKeyDown={handleKey}
+                  onCompositionEnd={handleCompositionEnd}
+                  onChange={() => undefined}
+                  readOnly
+                  className="w-full rounded-md border bg-card px-3 py-2 font-mono text-lg tracking-widest"
+                  placeholder="在此输入五笔码..."
+                  autoFocus
+                  aria-label="五笔码输入"
+                />
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handleStart} size="sm">重新开始</Button>
+                  {state.status === 'paused' && (
+                    <Button variant="default" onClick={() => setState((s) => ({ ...s, status: 'running' }))} size="sm">
+                      继续
+                    </Button>
+                  )}
+                </div>
+                {state.status === 'paused' && (
+                  <div className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
+                    已暂停 · 按 Esc 继续
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>

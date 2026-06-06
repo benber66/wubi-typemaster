@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
-import { Home, BarChart3, Settings as SettingsIcon, Keyboard } from 'lucide-react';
+import { Home, BarChart3, Settings as SettingsIcon, Keyboard, FileText, Gamepad2, CircleDot, Crosshair } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { version } from '../../../package.json';
 
 interface NavItem {
   to: string;
@@ -8,11 +9,18 @@ interface NavItem {
   icon: React.ReactNode;
 }
 
-const NAV_ITEMS: ReadonlyArray<NavItem> = [
+const SITE_ITEMS: ReadonlyArray<NavItem> = [
   { to: '/', label: '首页', icon: <Home className="h-4 w-4" /> },
   { to: '/stats', label: '统计', icon: <BarChart3 className="h-4 w-4" /> },
   { to: '/keyboard', label: '键位', icon: <Keyboard className="h-4 w-4" /> },
   { to: '/settings', label: '设置', icon: <SettingsIcon className="h-4 w-4" /> },
+];
+
+const MODE_ITEMS: ReadonlyArray<NavItem> = [
+  { to: '/article', label: '文章跟打', icon: <FileText className="h-4 w-4" /> },
+  { to: '/word-invaders', label: 'Invaders', icon: <Gamepad2 className="h-4 w-4" /> },
+  { to: '/bubble', label: 'Bubble', icon: <CircleDot className="h-4 w-4" /> },
+  { to: '/key-drill', label: 'KeyDrill', icon: <Crosshair className="h-4 w-4" /> },
 ];
 
 export function Sidebar() {
@@ -24,15 +32,34 @@ export function Sidebar() {
         </div>
         <div>
           <div className="text-sm font-semibold leading-none">WubiTypeMaster</div>
-          <div className="text-[10px] text-muted-foreground">v0.6.0</div>
+          <div className="text-[10px] text-muted-foreground">v{version}</div>
         </div>
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-3">
-        {NAV_ITEMS.map((item) => (
+        <div className="px-3 py-1 text-[10px] font-medium uppercase text-muted-foreground">导航</div>
+        {SITE_ITEMS.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.to === '/'}
+            className={({ isActive }) =>
+              cn(
+                'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
+                isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-foreground hover:bg-accent',
+              )
+            }
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </NavLink>
+        ))}
+        <div className="mt-2 px-3 py-1 text-[10px] font-medium uppercase text-muted-foreground">练习模式</div>
+        {MODE_ITEMS.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',

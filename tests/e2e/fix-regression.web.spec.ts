@@ -25,7 +25,7 @@ test('WordInvaders canvas is present (not white screen)', async ({ page }) => {
   const gameCard = page.locator('[class*="group"]').filter({ hasText: 'Word Invaders' }).first();
   await gameCard.getByRole('button', { name: '开始' }).click();
   await page.getByRole('button', { name: '开始游戏' }).click();
-  await expect(page.getByText('得分')).toBeVisible({ timeout: 3000 });
+  await expect(page.getByText('得分')).toBeVisible({ timeout: 8000 });
   const canvas = page.locator('canvas');
   await expect(canvas).toBeAttached();
   await expect(canvas).toBeVisible();
@@ -36,7 +36,7 @@ test('Bubble canvas is present (not white screen)', async ({ page }) => {
   const bubbleCard = page.locator('[class*="group"]').filter({ hasText: 'Bubble' }).first();
   await bubbleCard.getByRole('button', { name: '开始' }).click();
   await page.getByRole('button', { name: '开始游戏' }).click();
-  await expect(page.getByText('得分')).toBeVisible({ timeout: 3000 });
+  await expect(page.getByText('得分')).toBeVisible({ timeout: 8000 });
   const canvas = page.locator('canvas');
   await expect(canvas).toBeAttached();
   await expect(canvas).toBeVisible();

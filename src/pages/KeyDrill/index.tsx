@@ -21,7 +21,10 @@ export function KeyDrillPage() {
   const [queueSize, setQueueSize] = useState(20);
   const [state, setState] = useState<typeof INITIAL_DRILL_STATE>(INITIAL_DRILL_STATE);
   const [weakKeys, setWeakKeys] = useState<string[]>([]);
+  const [shake, setShake] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const statusRef = useRef(state.status);
+  statusRef.current = state.status;
 
   const handleStart = (): void => {
     const lookup = getPracticeLookup();
@@ -46,7 +49,7 @@ export function KeyDrillPage() {
 
   const handleKey = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>): void => {
-      if (state.status !== 'running') return;
+      if (statusRef.current !== 'running') return;
       if (e.key === 'Backspace') {
         e.preventDefault();
         setState((s) => ({ ...s, typed: s.typed.slice(0, -1) }));
@@ -61,9 +64,18 @@ export function KeyDrillPage() {
       if (!letter || letter.length !== 1 || !/[a-z]/.test(letter)) return;
       e.preventDefault();
       const ch = letter;
-      setState((s) => applyTyped(s, ch).next);
+      setState((s) => {
+        const prevLen = s.typed.length;
+        const next = applyTyped(s, ch).next;
+        // If typed was reset (error), trigger shake feedback
+        if (next.typed.length < prevLen + 1) {
+          setShake(false);
+          requestAnimationFrame(() => setShake(true));
+        }
+        return next;
+      });
     },
-    [state.status],
+    [],
   );
 
   useEffect(() => {
@@ -165,7 +177,7 @@ export function KeyDrillPage() {
                 <div className="mt-2 text-sm text-muted-foreground">
                   码长 {currentItem.code.length} · 弱键 {weakKeys.filter((k) => currentItem.code.includes(k)).join(' ')}
                 </div>
-                <div className="mt-3 font-mono text-lg tracking-widest">
+                <div className={`mt-3 font-mono text-lg tracking-widest transition-all ${shake ? 'animate-shake' : ''}`}>
                   {currentItem.code.split('').map((c, i) => (
                     <span
                       key={i}

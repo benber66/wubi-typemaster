@@ -4,10 +4,10 @@ test.describe('Home page', () => {
   test('renders all 4 mode cards', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: '五笔打字练习' })).toBeVisible();
-    await expect(page.getByText('文章跟打')).toBeVisible();
-    await expect(page.getByText('Word Invaders')).toBeVisible();
-    await expect(page.getByText('Bubble')).toBeVisible();
-    await expect(page.getByText('KeyDrill')).toBeVisible();
+    await expect(page.locator('main').getByText('文章跟打')).toBeVisible();
+    await expect(page.locator('main').getByText('Word Invaders')).toBeVisible();
+    await expect(page.locator('main').getByText('Bubble')).toBeVisible();
+    await expect(page.locator('main').getByText('KeyDrill')).toBeVisible();
   });
 
   test('shows the code-table size summary', async ({ page }) => {

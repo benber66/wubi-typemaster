@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { FileText, Gamepad2, CircleDot, Crosshair, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { version } from '../../../package.json';
 
 interface Mode {
   id: string;
@@ -117,7 +118,7 @@ export function HomePage() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>当前版本</CardDescription>
-            <CardTitle className="text-2xl">v0.6.0</CardTitle>
+            <CardTitle className="text-2xl">v{version}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">Phase 3-6 · 4 模式 + Stats 全就绪</p>

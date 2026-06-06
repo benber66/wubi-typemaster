@@ -19,17 +19,20 @@ function findWubiEntriesForChar(
   };
 }
 
-function ReadingText({ target, position }: { target: string; typed: string; position: number }) {
+function ReadingText({ target, position, errors }: { target: string; position: number; errors: ReadonlyArray<{ position: number }> }) {
+  const errorPositions = new Set(errors.map((e) => e.position));
   return (
     <div className="font-mono text-2xl leading-loose tracking-wide">
       {target.split('').map((ch, i) => {
         let className = 'transition-colors';
-        if (i < position) {
-          className += ' text-foreground';
-        } else if (i === position) {
-          className += ' border-b-2 border-primary text-foreground';
+        if (i === position) {
+          className += ' border-b-2 border-primary text-foreground font-bold';
+        } else if (i < position) {
+          className += errorPositions.has(i)
+            ? ' text-destructive line-through'
+            : ' text-green-600 dark:text-green-400';
         } else {
-          className += ' text-muted-foreground/50';
+          className += ' text-muted-foreground/40';
         }
         return (
           <span key={i} className={className}>
@@ -272,18 +275,24 @@ export function ArticlePage() {
               duration={elapsed}
             />
             <div className="border-t pt-4">
-              <ReadingText target={targetText} typed="" position={position} />
+              <ReadingText target={targetText} position={position} errors={errors} />
             </div>
             <textarea
               ref={inputRef}
               onCompositionStart={handleCompositionStart}
               onCompositionUpdate={handleCompositionUpdate}
               onCompositionEnd={handleCompositionEnd}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape' && status === 'paused') {
+                  usePractice.getState().resume();
+                }
+              }}
               className="w-full rounded-md border bg-card px-3 py-2 font-mono text-lg"
               autoFocus
               aria-label="五笔输入"
               rows={1}
               placeholder="在此输入五笔..."
+              disabled={status === 'paused'}
             />
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>
@@ -294,9 +303,6 @@ export function ArticlePage() {
                   </span>
                 )}
               </span>
-              {hintChar && activeErrorChar && (
-                <span className="text-destructive">上次错字: {activeErrorChar}</span>
-              )}
             </div>
             {showVirtualKeyboard && (
               <div className="rounded-md border bg-muted/30 p-4">
@@ -316,11 +322,26 @@ export function ArticlePage() {
                 重新开始
               </Button>
               {status === 'running' && (
+                <Button variant="outline" onClick={() => usePractice.getState().pause()} size="sm">
+                  暂停
+                </Button>
+              )}
+              {status === 'paused' && (
+                <Button variant="default" onClick={() => usePractice.getState().resume()} size="sm">
+                  继续
+                </Button>
+              )}
+              {status === 'running' && (
                 <Button variant="ghost" onClick={usePractice.getState().end} size="sm">
                   结束练习
                 </Button>
               )}
             </div>
+            {status === 'paused' && (
+              <div className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
+                已暂停 · 点击「继续」或按 Esc 恢复
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
