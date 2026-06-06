@@ -1,15 +1,34 @@
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { AppLayout } from '@/components/Layout/AppLayout';
+import { HomePage } from '@/pages/Home';
+import { SettingsPage } from '@/pages/Settings';
+import { KeyboardPage } from '@/pages/Keyboard';
+import {
+  ArticlePage,
+  BubblePage,
+  KeyDrillPage,
+  StatsPage,
+  WordInvadersPage,
+} from '@/pages/Placeholder';
+
 export function App() {
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold">WubiTypeMaster</h1>
-        <p className="mt-4 text-muted-foreground">
-          五笔字型打字练习软件 · v0.0.1 (initial commit)
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          详见 <a href="https://github.com/benber66/wubi-typemaster" className="underline">docs/</a> 了解项目状态。
-        </p>
-      </div>
-    </main>
+    <ThemeProvider>
+      <MemoryRouter>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/article" element={<ArticlePage />} />
+            <Route path="/word-invaders" element={<WordInvadersPage />} />
+            <Route path="/bubble" element={<BubblePage />} />
+            <Route path="/key-drill" element={<KeyDrillPage />} />
+            <Route path="/stats" element={<StatsPage />} />
+            <Route path="/keyboard" element={<KeyboardPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </ThemeProvider>
   );
 }

@@ -12,6 +12,7 @@
     "scripts/**/*",
     "src/db/**/*",
     "src/lib/**/*",
-    "src/data/**/*"
+    "src/data/**/*",
+    "src/types/**/*"
   ]
 }

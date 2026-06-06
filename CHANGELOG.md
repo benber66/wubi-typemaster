@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-06
+
+### Added
+- **核心 UI 骨架**（Phase 2 完成）
+- **路由 + 侧边栏布局**：react-router-dom MemoryRouter + Sidebar 导航（首页/统计/键位/设置）
+- **首页**：4 种模式卡片（文章跟打 / Word Invaders / Bubble / KeyDrill），Phase 3+ 模式未实装显示「即将推出」标记
+- **设置页**：Light/Dark/System 主题切换 + 8 个强调色预设 + 自定义色盘 + 虚拟键盘显隐 + 音效开关 + 音量
+- **键位页**：完整五笔 86 虚拟键盘展示（26 键，每键显示主字根 + 蓝/橙边区分左右手）
+- **持久化**：Zustand `persist` 中间件 → `localStorage`，重启保留设置（Phase 3+ 同步到 SQLite）
+- **shadcn/ui 基础组件**：Button、Card、Switch、Label、Select、Slider（手写，未用 CLI）
+- **radix-ui 依赖**：`@radix-ui/react-{slot,switch,label,select,slider,dialog}` 6 个包
+- **lib/db/settings.ts**：DB 设置 CRUD（getSetting/setSetting/loadAllSettings/saveAllSettings）— 供主进程使用
+
+### Changed
+- **App.tsx**：从静态欢迎页 → 完整路由 + ThemeProvider
+- **vitest.config.ts**：分层覆盖率阈值（lib/wubi 100%、db 80%、全局 60%）；排除 entry points + UI 框架
+- **tsconfig.node.json**：新增 `src/types/**/*` include
+
+### Verified
+- ✅ `pnpm typecheck` 0 错误
+- ✅ `pnpm lint` 0 错误
+- ✅ `pnpm test:coverage` 92/92 通过，整体 98.79%
+- ✅ `pnpm build` 3 角色（main/preload/renderer）全成功，renderer bundle 622KB
+- ✅ `pnpm dev` 启动正常，3 Electron 进程 + WubiTypeMaster 窗口
+
 ## [0.1.1] - 2026-06-06
 
 ### Added
@@ -93,7 +118,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 开发者文档与用户文档
 - CI/CD 工作流占位
 
-[Unreleased]: https://github.com/benber66/wubi-typemaster/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/benber66/wubi-typemaster/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/benber66/wubi-typemaster/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/benber66/wubi-typemaster/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/benber66/wubi-typemaster/compare/v0.0.2...v0.1.0
 [0.0.2]: https://github.com/benber66/wubi-typemaster/compare/v0.0.1...v0.0.2
