@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-06-06
+
+### Added
+- **Storybook 8.6.18** 完整接入（补完 Phase 2 未完成项）
+- **27 个 stories**，分 3 个分类：
+  - `UI/`：Button (9)、Card (2)、Switch (4)、Select (2)、Slider (3) — shadcn 原子组件
+  - `Components/`：VirtualKeyboard (4)、Sidebar (1) — 应用组件
+  - `Pages/`：HomePage、SettingsPage、KeyboardPage — 整页（带 ThemeProvider + MemoryRouter decorator）
+- **`.npmrc`**：`public-hoist-pattern[]=@storybook/*`（pnpm 必须 hoist storybook 子包）
+- **`.storybook/main.ts`**：用 Storybook 8 的 `StorybookConfig` 类型 + `@/` 别名
+- **`.storybook/preview.ts`**：`withThemeByClassName` decorator 自动切换 light/dark 主题
+
+### Removed
+- `.storybook/store.ts`：占位 Redux store（项目用 Zustand）
+- `.storybook/stories/App.stories.tsx`：占位 App story
+
+### Verified
+- ✅ `pnpm build-storybook` 11 个 stories 文件 → 27 stories 成功 build
+- ✅ `pnpm typecheck` 0 错误
+- ✅ `pnpm lint` 0 错误
+- ✅ `pnpm test` 92/92 通过
+
 ## [0.2.0] - 2026-06-06
 
 ### Added
@@ -118,7 +140,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 开发者文档与用户文档
 - CI/CD 工作流占位
 
-[Unreleased]: https://github.com/benber66/wubi-typemaster/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/benber66/wubi-typemaster/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/benber66/wubi-typemaster/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/benber66/wubi-typemaster/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/benber66/wubi-typemaster/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/benber66/wubi-typemaster/compare/v0.0.2...v0.1.0
