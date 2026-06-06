@@ -6,5 +6,12 @@
     "moduleResolution": "bundler",
     "types": ["node", "electron-vite/node"]
   },
-  "include": ["electron/**/*", "electron.vite.config.ts", "scripts/**/*"]
+  "include": [
+    "electron/**/*",
+    "electron.vite.config.ts",
+    "scripts/**/*",
+    "src/db/**/*",
+    "src/lib/**/*",
+    "src/data/**/*"
+  ]
 }

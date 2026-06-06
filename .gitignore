@@ -66,6 +66,15 @@ storybook-static/
 *.zip
 *.tar.gz
 
+# Local SQLite databases (Phase 1+)
+data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.db-wal
+*.db-shm
+
 # Temporary
 tmp/
 temp/

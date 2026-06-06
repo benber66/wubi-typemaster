@@ -37,4 +37,12 @@ module.exports = {
     '*.config.ts',
     'storybook-static',
   ],
+  overrides: [
+    {
+      files: ['scripts/**/*.ts', 'electron/**/*.ts'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+  ],
 };
