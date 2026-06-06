@@ -24,7 +24,7 @@ import type { WubiChar, WubiWord } from '@/lib/wubi/lookup';
 
 type PoolEntry = WubiChar | WubiWord;
 
-const DESTROY_TARGET = 30;
+const DESTROY_TARGET = 100;
 
 const initialState: GameState = {
   status: 'idle',

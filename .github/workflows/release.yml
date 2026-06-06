@@ -29,7 +29,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 9
 
@@ -41,6 +41,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Build & Package
+        shell: bash
         run: |
           pnpm build
           if [ "$RUNNER_OS" == "Windows" ]; then

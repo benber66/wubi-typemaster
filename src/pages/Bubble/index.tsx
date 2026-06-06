@@ -72,7 +72,7 @@ export function BubblePage() {
   const [state, setState] = useState<GameState>(initialState);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [missLimit] = useState(20);
-  const DESTROY_TARGET = 30;
+  const DESTROY_TARGET = 100;
   const statusRef = useRef(state.status);
   statusRef.current = state.status;
   const idRef = useRef(1);
