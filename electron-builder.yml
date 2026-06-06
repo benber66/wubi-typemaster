@@ -1,0 +1,73 @@
+appId: cc.wubi.typemaster
+productName: WubiTypeMaster
+copyright: Copyright © 2026 ${author}
+
+directories:
+  buildResources: build
+  output: release
+  output: release/${version}
+
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron/*'
+  - '!{test,tests,docs,coverage}/**'
+  - '!{.editorconfig,.eslintrc.cjs,.prettierrc,.prettierignore,tsconfig*.json}'
+  - '!package.json'
+  - '!pnpm-lock.yaml'
+  - '!*.log'
+
+asar: true
+asarUnpack:
+  - '**/*.node'
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  artifactName: ${productName}-${version}-${arch}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: WubiTypeMaster
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+  category: Education
+  desktop:
+    entry:
+      Name: WubiTypeMaster
+      Comment: 五笔字型打字练习
+      Categories: Education;Utility;
+      MimeType: application/x-wubi-typemaster;
+  artifactName: ${productName}-${version}.${ext}
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  category: public.app-category.education
+  artifactName: ${productName}-${version}-${arch}.${ext}
+
+publish:
+  provider: github
+  owner: benber66
+  repo: wubi-typemaster
+  releaseType: release
