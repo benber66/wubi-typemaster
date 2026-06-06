@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { PixiBubbles } from '@/components/PixiBubbles';
 import { useGameSession } from '@/hooks/use-game-session';
 import { codeToLetter } from '@/lib/ime/key-utils';
+import { getPracticeLookup } from '@/lib/practice/lookup-bridge';
+import type { WubiChar, WubiWord } from '@/lib/wubi/lookup';
 import {
   type GameStatus,
   type Bubble,
@@ -18,25 +20,6 @@ import {
   getWpm,
   makeBubble,
 } from '@/lib/game/bubble';
-import type { WubiChar, WubiWord } from '@/lib/wubi/lookup';
-
-const SAMPLE_POOL: Array<WubiChar | WubiWord> = [
-  { word: '我们', code: 'trwu', weight: 100, length: 2, isCore: true },
-  { word: '什么', code: 'wftc', weight: 100, length: 2, isCore: true },
-  { word: '知道', code: 'tdut', weight: 100, length: 2, isCore: true },
-  { word: '中国', code: 'klp', weight: 100, length: 2, isCore: true },
-  { word: '他们', code: 'wbwu', weight: 100, length: 2, isCore: true },
-  { word: '学习', code: 'tpnf', weight: 100, length: 2, isCore: true },
-  { word: '工作', code: 'awtf', weight: 100, length: 2, isCore: true },
-  { word: '生活', code: 'tiiy', weight: 100, length: 2, isCore: true },
-  { word: '世界', code: 'pwlr', weight: 100, length: 2, isCore: true },
-  { word: '时间', code: 'jfug', weight: 100, length: 2, isCore: true },
-  { word: '朋友', code: 'eeyc', weight: 100, length: 2, isCore: true },
-  { word: '家庭', code: 'pytc', weight: 100, length: 2, isCore: true },
-  { word: '重要', code: 'tysc', weight: 100, length: 2, isCore: true },
-  { word: '发展', code: 'ntna', weight: 100, length: 2, isCore: true },
-  { word: '技术', code: 'awsf', weight: 100, length: 2, isCore: true },
-];
 
 interface GameState {
   status: GameStatus;
@@ -78,6 +61,10 @@ function spawnBubble(pool: Array<WubiChar | WubiWord>, config: BubbleConfig, id:
 
 export function BubblePage() {
   const config: BubbleConfig = useMemo(() => ({ ...DEFAULT_BUBBLE_CONFIG, width: 720, height: 480 }), []);
+  const pool = useMemo(() => {
+    const lookup = getPracticeLookup();
+    return lookup.randomCoreWords(20, 2) as Array<WubiChar | WubiWord>;
+  }, []);
   const [state, setState] = useState<GameState>(initialState);
   const idRef = useRef(1);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -96,7 +83,7 @@ export function BubblePage() {
         let spawnTimer = s.spawnTimer + deltaMs;
         const newBubbles = [...survivors];
         if (spawnTimer >= config.spawnIntervalMs && newBubbles.length < config.maxOnScreen) {
-          const b = spawnBubble(SAMPLE_POOL, config, idRef.current++);
+          const b = spawnBubble(pool, config, idRef.current++);
           if (b) newBubbles.push(b);
           spawnTimer = 0;
         }
@@ -112,7 +99,7 @@ export function BubblePage() {
       });
     }, 100);
     return () => clearInterval(id);
-  }, [state.status, config]);
+  }, [state.status, config, pool]);
 
   const handleStart = (): void => {
     idRef.current = 1;

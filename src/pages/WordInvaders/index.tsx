@@ -5,6 +5,7 @@ import { PixiInvaders } from '@/components/PixiInvaders';
 import { useSettings } from '@/stores/settings';
 import { useGameSession } from '@/hooks/use-game-session';
 import { codeToLetter } from '@/lib/ime/key-utils';
+import { getPracticeLookup } from '@/lib/practice/lookup-bridge';
 import {
   DEFAULT_INVADER_CONFIG,
   type GameState,
@@ -38,23 +39,6 @@ const initialState: GameState = {
   tickMs: 0,
 };
 
-const samplePool: PoolEntry[] = [
-  { char: '我', code: 'trd', weight: 100, codeLength: 3, isCore: true },
-  { char: '国', code: 'lg', weight: 100, codeLength: 2, isCore: true },
-  { char: '人', code: 'w', weight: 100, codeLength: 1, isCore: true },
-  { char: '的', code: 'r', weight: 100, codeLength: 1, isCore: true },
-  { char: '一', code: 'g', weight: 100, codeLength: 1, isCore: true },
-  { char: '是', code: 'j', weight: 100, codeLength: 1, isCore: true },
-  { char: '不', code: 'i', weight: 100, codeLength: 1, isCore: true },
-  { char: '了', code: 'b', weight: 100, codeLength: 1, isCore: true },
-  { char: '在', code: 'd', weight: 100, codeLength: 1, isCore: true },
-  { word: '我们', code: 'trwu', weight: 200, length: 2, isCore: true },
-  { word: '什么', code: 'wftc', weight: 200, length: 2, isCore: true },
-  { word: '知道', code: 'tdut', weight: 200, length: 2, isCore: true },
-  { word: '中国', code: 'klp', weight: 200, length: 2, isCore: true },
-  { word: '他们', code: 'wbwu', weight: 200, length: 2, isCore: true },
-];
-
 function spawnInvader(pool: PoolEntry[], config: InvaderConfig, id: number): Invader | null {
   const item = pickPoolItem(pool);
   if (!item) return null;
@@ -66,7 +50,12 @@ export function WordInvadersPage() {
   const showVirtualKeyboard = useSettings((s) => s.settings.showVirtualKeyboard);
   const config: InvaderConfig = useMemo(() => ({ ...DEFAULT_INVADER_CONFIG, width: 720, height: 480 }), []);
   const [state, setState] = useState<GameState>(initialState);
-  const pool = useMemo(() => samplePool, []);
+  const pool = useMemo(() => {
+    const lookup = getPracticeLookup();
+    const chars = lookup.randomCoreChars(15);
+    const words = lookup.randomCoreWords(15, 2);
+    return [...chars, ...words] as PoolEntry[];
+  }, []);
   const idRef = useRef(1);
   const inputRef = useRef<HTMLInputElement>(null);
 

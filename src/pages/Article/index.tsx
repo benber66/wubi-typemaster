@@ -279,9 +279,11 @@ export function ArticlePage() {
               onCompositionStart={handleCompositionStart}
               onCompositionUpdate={handleCompositionUpdate}
               onCompositionEnd={handleCompositionEnd}
-              className="sr-only"
+              className="w-full rounded-md border bg-card px-3 py-2 font-mono text-lg"
               autoFocus
               aria-label="五笔输入"
+              rows={1}
+              placeholder="在此输入五笔..."
             />
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>
