@@ -1,6 +1,6 @@
 # 架构概览
 
-> 版本：v0.0.1
+> 版本：v0.1.1
 
 ## 1. 总体架构
 
@@ -176,4 +176,4 @@ IPC 调用
 - ADR-0001：选择 React + TypeScript 技术栈
 - ADR-0002：选择 Electron 而非 Tauri
 - ADR-0003：CI/CD 策略（GitHub Actions + Gitee 镜像）
-- ADR-0004：五笔码表硬编码到 SQLite 内置表
+- ADR-0004：五笔码表硬编码到 SQLite 内置表（v0.1.1 修订：3 数据源 + 核心集标记）

@@ -49,9 +49,24 @@ pnpm dev
 
 ## 📋 项目状态
 
-当前版本：**v0.0.1**（初始提交）
+当前版本：**v0.1.1**（Phase 1 数据层完成）
+
+| Phase | 内容 | 状态 |
+|---|---|---|
+| 0 | 仓库骨架 + CI + 文档 | ✅ v0.0.2 |
+| 1 | 五笔码表 + 核心集标记 + SQLite + Lookup API | ✅ v0.1.1 |
+| 2 | 设置/主题/虚拟键盘 | ⏳ 进行中 |
+| 3 | 4 模式练习核心 | ⏳ |
+| 4 | 历史/统计 | ⏳ |
+| 5 | 打包 + 自动更新 | ⏳ |
 
 详细路线图：[docs/roadmap.md](./docs/roadmap.md)
+
+### 数据规模
+
+- 21,586 单字（核心 3,500）+ 62,323 词组（核心 7,301）
+- 数据源：rime-wubi86-jidian（Apache-2.0）+ hanziDB（MIT）+ SUBTLEX-CH（学术）
+- 详见 [docs/data-sources.md](./docs/data-sources.md)
 
 ## 🤝 贡献
 

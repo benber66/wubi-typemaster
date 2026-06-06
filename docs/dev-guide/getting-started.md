@@ -59,19 +59,58 @@ pnpm build:linux
 pnpm build:all
 ```
 
+### 3.1 数据层命令（Phase 1）
+
+```bash
+# 从 3 个原始数据源生成 src/data/wubi86-*.json
+# （仅当 raw 数据更新时才需要；仓库已带预生成产物）
+pnpm build:wubi
+
+# 灌入 SQLite（首次启动或重置时执行）
+pnpm seed
+
+# 重置数据库（删除再灌入）
+pnpm seed:reset
+```
+
+> 数据源说明见 [`docs/data-sources.md`](../data-sources.md) 和 [`docs/decisions/0004-data-approach.md`](../decisions/0004-data-approach.md)。
+
 ## 4. 项目结构
 
 ```
 wubi-typemaster/
-├── electron/          # 主进程
-├── src/               # 渲染进程
-├── tests/             # 测试
-├── docs/              # 文档
-├── .github/           # CI/CD
+├── electron/                # 主进程
+├── src/
+│   ├── db/                  # SQLite 客户端 + 迁移
+│   │   ├── client.ts
+│   │   └── migrations/
+│   ├── lib/
+│   │   └── wubi/            # 码表查询 API（lookup.ts）
+│   ├── data/
+│   │   ├── raw/             # 3 个原始数据源（带 LICENSE）
+│   │   ├── wubi86-chars.json    # 生成：21,586 字
+│   │   ├── wubi86-words.json    # 生成：62,323 词
+│   │   └── wubi86-stats.json    # 生成：构建统计
+│   └── renderer/            # 渲染进程（Phase 2+）
+├── scripts/
+│   ├── build-wubi-table.ts  # 3 源 → JSON
+│   └── seed-db.ts           # JSON → SQLite
+├── tests/
+│   ├── unit/                # 单元测试
+│   └── integration/         # 集成测试
+├── docs/
+│   ├── architecture/        # 架构
+│   ├── decisions/           # ADR
+│   ├── dev-guide/           # 开发者文档
+│   ├── user-guide/          # 用户文档
+│   ├── data-sources.md
+│   └── roadmap.md
+├── data/                    # Gitignored：开发期 SQLite
+├── .github/                 # CI/CD
 └── ...
 ```
 
-详见 [`../architecture/overview.md`](../architecture/overview.md)。
+详见 [`../architecture/overview.md`](../architecture/overview.md)、[`db-schema.md`](../architecture/db-schema.md) 和 [`lookup-api.md`](../architecture/lookup-api.md)。
 
 ## 5. 开发流程
 

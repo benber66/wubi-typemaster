@@ -10,6 +10,8 @@
 
 - [架构概览](./architecture/overview.md) — 技术栈、模块划分、数据流
 - [数据库 Schema](./architecture/db-schema.md) — SQLite 表设计
+- [Lookup API](./architecture/lookup-api.md) — 五笔码表查询 API
+- [数据源说明](./data-sources.md) — 3 个第三方数据源
 - [CI/CD 方案](./architecture/ci-cd.md) — 工作流、Gitee 同步、自动更新
 
 ## 🛠️ 开发
