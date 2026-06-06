@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-06
+
+### Added
+- **Phase 3a 打字核心 metrics** (`src/lib/typing/metrics.ts`)
+  - `calculateWpm(correctChars, durationMs)` + `wpmToCpm(wpm)` 标准公式
+  - `calculateAccuracy(correct, total)` 0-1 浮点
+  - `compareTexts(target, typed)` 返回 `ComparisonResult`（per-char status + error list）
+  - `isCharCorrect` / `summarizeKeystrokes` 辅助
+  - 21 个单元测试覆盖
+- **Phase 3b IME 输入处理** (`src/lib/ime/input-handler.ts`)
+  - `extractCommitText` / `isFinalCommit` 处理 compositionend 事件
+  - `getLastChar` / `handleCommit` 标点过滤与单字提取
+  - `buildCharError` 构造 `CharError`（含 expected/typed/expectedCode/typedCode/position）
+  - 17 个单元测试覆盖
+- **Phase 3d 练习状态机** (`src/stores/practice.ts`)
+  - Zustand store：`start/pause/resume/commit/undo/end/reset/getResult`
+  - 自动记录 `CharError[]`，自动计算 wpm/accuracy/durationMs
+  - `commit` 返回 `CharError | null`（完成时返回 null）
+  - 15 个单元测试覆盖
+- **Phase 3c/3e 文章练习页** (`src/pages/Article/`)
+  - 文本选择 → 实时 WPM/准确率/进度条
+  - IME compositionend 捕获单字
+  - 错字弹五笔码 + 词组提示
+  - 完成页显示错字明细
+  - VirtualKeyboard 联动：高亮目标字首笔键位
+  - 1 个 Storybook story
+- **CodeHint 组件** (`src/components/CodeHint/`)
+  - 错字码 + 词组建议 + 键位提示
+  - 3 个 Storybook story
+- **示例文本** (`src/lib/practice/sample-texts.ts`)
+  - 5 句中英文练习素材
+
+### Total tests
+- 92 → **145 passed** (53 新增)
+
 ## [0.2.1] - 2026-06-06
 
 ### Added

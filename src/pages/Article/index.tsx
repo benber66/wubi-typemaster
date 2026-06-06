@@ -1,0 +1,302 @@
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { VirtualKeyboard } from '@/components/VirtualKeyboard';
+import { CodeHint, buildWordSuggestions, getCodeForChar } from '@/components/CodeHint';
+import { usePractice } from '@/stores/practice';
+import { useSettings } from '@/stores/settings';
+import { SAMPLE_TEXTS, getRandomSampleText } from '@/lib/practice/sample-texts';
+import { isFinalCommit, extractCommitText } from '@/lib/ime/input-handler';
+import { findKeyByChar } from '@/components/VirtualKeyboard/layout';
+import type { WubiChar, WubiWord } from '@/lib/wubi/lookup';
+
+const PRACTICE_LOOKUP: { chars: WubiChar[]; words: WubiWord[] } = {
+  chars: [],
+  words: [],
+};
+
+function loadLookup() {
+  if (PRACTICE_LOOKUP.chars.length > 0) return PRACTICE_LOOKUP;
+  // 静态导入 JSON 会被 Vite bundle，这里使用 fetch + 后台 seed 简化
+  // 实际接入主进程 IPC 后用 createLookup
+  return PRACTICE_LOOKUP;
+}
+
+function findWubiEntriesForChar(
+  char: string | null,
+): { code: string | null; words: WubiWord[] } {
+  const lookup = loadLookup();
+  return {
+    code: getCodeForChar(char, lookup.chars),
+    words: buildWordSuggestions(char, lookup.words),
+  };
+}
+
+function ReadingText({ target, position }: { target: string; typed: string; position: number }) {
+  return (
+    <div className="font-mono text-2xl leading-loose tracking-wide">
+      {target.split('').map((ch, i) => {
+        let className = 'transition-colors';
+        if (i < position) {
+          className += ' text-foreground';
+        } else if (i === position) {
+          className += ' border-b-2 border-primary text-foreground';
+        } else {
+          className += ' text-muted-foreground/50';
+        }
+        return (
+          <span key={i} className={className}>
+            {ch}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function StatsBar({ wpm, accuracy, position, total, duration }: { wpm: number; accuracy: number; position: number; total: number; duration: number }) {
+  return (
+    <div className="grid grid-cols-4 gap-3 text-sm">
+      <div>
+        <div className="text-muted-foreground">进度</div>
+        <div className="text-lg font-semibold">
+          {position} / {total}
+        </div>
+      </div>
+      <div>
+        <div className="text-muted-foreground">WPM</div>
+        <div className="text-lg font-semibold">{wpm}</div>
+      </div>
+      <div>
+        <div className="text-muted-foreground">准确率</div>
+        <div className="text-lg font-semibold">{(accuracy * 100).toFixed(1)}%</div>
+      </div>
+      <div>
+        <div className="text-muted-foreground">用时</div>
+        <div className="text-lg font-semibold">{(duration / 1000).toFixed(1)}s</div>
+      </div>
+    </div>
+  );
+}
+
+export function ArticlePage() {
+  const showVirtualKeyboard = useSettings((s) => s.settings.showVirtualKeyboard);
+  const status = usePractice((s) => s.status);
+  const targetText = usePractice((s) => s.targetText);
+  const position = usePractice((s) => s.position);
+  const errors = usePractice((s) => s.errors);
+  const start = usePractice((s) => s.start);
+  const commit = usePractice((s) => s.commit);
+  const reset = usePractice((s) => s.reset);
+  const getResult = usePractice((s) => s.getResult);
+
+  const [selectedTextId, setSelectedTextId] = useState<string>(SAMPLE_TEXTS[0]?.id ?? '');
+  const [elapsed, setElapsed] = useState(0);
+  const [hintChar, setHintChar] = useState<string | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const errorInfo = errors[errors.length - 1];
+
+  // Tick timer while running
+  useEffect(() => {
+    if (status !== 'running') return;
+    const id = setInterval(() => setElapsed((e) => e + 100), 100);
+    return () => clearInterval(id);
+  }, [status]);
+
+  // Auto-focus input
+  useEffect(() => {
+    if (status === 'running') inputRef.current?.focus();
+  }, [status]);
+
+  // Reset elapsed on start
+  useEffect(() => {
+    if (status === 'running') setElapsed(0);
+  }, [status, targetText]);
+
+  const activeChar = usePractice((s) => s.targetText[s.position] ?? null);
+  const activeEntry = useMemo(() => findWubiEntriesForChar(activeChar), [activeChar]);
+  const pressedKeys = useMemo(
+    () => (activeEntry.code ? [activeEntry.code[0]?.toLowerCase() ?? ''] : []),
+    [activeEntry.code],
+  );
+
+  const handleStart = () => {
+    const t = SAMPLE_TEXTS.find((x) => x.id === selectedTextId) ?? getRandomSampleText();
+    setSelectedTextId(t.id);
+    start(t.content, t.id);
+  };
+
+  const handleReset = () => {
+    reset();
+    setHintChar(null);
+  };
+
+  const handleCompositionEnd = (e: React.CompositionEvent<HTMLTextAreaElement>) => {
+    if (status !== 'running') return;
+    if (!isFinalCommit(e.nativeEvent)) return;
+    const text = extractCommitText(e.nativeEvent);
+    if (!text) return;
+    const expectedCode = activeEntry.code ?? '';
+    const typedCode = (() => {
+      const wc = PRACTICE_LOOKUP.chars.find((c) => c.char === text);
+      return wc?.code ?? null;
+    })();
+    const result = commit(text, expectedCode, typedCode);
+    if (result !== null) {
+      setHintChar(activeChar);
+    } else {
+      setHintChar(null);
+    }
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  const result = status === 'completed' ? getResult() : null;
+  const activeErrorChar = errorInfo?.expected ?? hintChar;
+  const activeErrorCode = errorInfo?.expectedCode ?? activeEntry.code ?? null;
+
+  return (
+    <div className="mx-auto max-w-4xl space-y-4 p-8">
+      <header>
+        <h1 className="text-3xl font-bold">文章跟打</h1>
+        <p className="mt-1 text-muted-foreground">
+          选择文本 · 用五笔输入 · 错字弹码提示
+        </p>
+      </header>
+
+      {status === 'idle' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>选择练习文本</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {SAMPLE_TEXTS.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setSelectedTextId(t.id)}
+                  className={`rounded-md border p-3 text-left transition-colors ${
+                    selectedTextId === t.id
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:bg-accent'
+                  }`}
+                >
+                  <div className="font-medium">{t.title}</div>
+                  <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.content}</div>
+                </button>
+              ))}
+            </div>
+            <Button onClick={handleStart} className="w-full" size="lg">
+              开始练习
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {status !== 'idle' && (
+        <Card>
+          <CardContent className="space-y-4 py-6">
+            <StatsBar
+              wpm={getResult().wpm}
+              accuracy={getResult().accuracy}
+              position={position}
+              total={targetText.length}
+              duration={elapsed}
+            />
+            <div className="border-t pt-4">
+              <ReadingText target={targetText} typed="" position={position} />
+            </div>
+            <textarea
+              ref={inputRef}
+              onCompositionEnd={handleCompositionEnd}
+              className="sr-only"
+              autoFocus
+              aria-label="五笔输入"
+            />
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>
+                目标字: <span className="font-mono font-semibold">{activeChar || '—'}</span>
+                {activeEntry.code && (
+                  <span className="ml-2">
+                    编码: <span className="font-mono">{activeEntry.code}</span>
+                  </span>
+                )}
+              </span>
+              {hintChar && activeErrorChar && (
+                <span className="text-destructive">上次错字: {activeErrorChar}</span>
+              )}
+            </div>
+            {showVirtualKeyboard && (
+              <div className="rounded-md border bg-muted/30 p-4">
+                <VirtualKeyboard pressedKeys={pressedKeys} showHands />
+              </div>
+            )}
+            {activeErrorChar && activeErrorCode && status === 'running' && (
+              <CodeHint
+                expectedChar={activeErrorChar}
+                expectedCode={activeErrorCode}
+                wordSuggestions={activeEntry.words}
+                onDismiss={() => setHintChar(null)}
+              />
+            )}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleReset} size="sm">
+                重新开始
+              </Button>
+              {status === 'running' && (
+                <Button variant="ghost" onClick={usePractice.getState().end} size="sm">
+                  结束练习
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {status === 'completed' && result && (
+        <Card>
+          <CardHeader>
+            <CardTitle>练习完成</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div>
+                <div className="text-sm text-muted-foreground">用时</div>
+                <div className="text-2xl font-bold">{(result.durationMs / 1000).toFixed(1)}s</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">WPM</div>
+                <div className="text-2xl font-bold">{result.wpm}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">准确率</div>
+                <div className="text-2xl font-bold">{(result.accuracy * 100).toFixed(1)}%</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">错字</div>
+                <div className="text-2xl font-bold text-destructive">{result.errors.length}</div>
+              </div>
+            </div>
+            {result.errors.length > 0 && (
+              <div className="mt-3 space-y-1 text-xs">
+                <div className="font-medium">错字明细（前 10 个）：</div>
+                {result.errors.slice(0, 10).map((e, i) => (
+                  <div key={i} className="flex gap-3 rounded border bg-muted/40 px-2 py-1">
+                    <span className="text-muted-foreground">位置 {e.position + 1}</span>
+                    <span>期望 <span className="font-mono">{e.expected}</span> ({e.expectedCode})</span>
+                    <span>输入 <span className="font-mono text-destructive">{e.typed}</span> ({e.typedCode ?? '—'})</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <Button onClick={handleReset} className="w-full" size="lg">
+              练习下一段
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+export { findKeyByChar };
