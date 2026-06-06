@@ -9,6 +9,7 @@
   "include": [
     "electron/**/*",
     "electron.vite.config.ts",
+    "vite.web.config.ts",
     "scripts/**/*",
     "src/db/**/*",
     "src/lib/**/*",

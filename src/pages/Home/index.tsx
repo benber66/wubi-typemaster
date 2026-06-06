@@ -19,7 +19,7 @@ const MODES: ReadonlyArray<Mode> = [
     desc: '完整文章段落练习 · 模拟真实场景',
     icon: <FileText className="h-6 w-6" />,
     path: '/article',
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'word-invaders',
@@ -27,7 +27,7 @@ const MODES: ReadonlyArray<Mode> = [
     desc: '趣味游戏化单字 / 词组练习',
     icon: <Gamepad2 className="h-6 w-6" />,
     path: '/word-invaders',
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'bubble',
@@ -117,10 +117,10 @@ export function HomePage() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>当前版本</CardDescription>
-            <CardTitle className="text-2xl">v0.2.0</CardTitle>
+            <CardTitle className="text-2xl">v0.4.0</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">Phase 2 · 核心 UI 骨架</p>
+            <p className="text-xs text-muted-foreground">Phase 3+4 · Article + WordInvaders</p>
           </CardContent>
         </Card>
       </section>

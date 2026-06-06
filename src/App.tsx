@@ -4,12 +4,12 @@ import { AppLayout } from '@/components/Layout/AppLayout';
 import { HomePage } from '@/pages/Home';
 import { SettingsPage } from '@/pages/Settings';
 import { KeyboardPage } from '@/pages/Keyboard';
+import { ArticlePage } from '@/pages/Article';
+import { WordInvadersPage as RealWordInvadersPage } from '@/pages/WordInvaders';
 import {
-  ArticlePage,
   BubblePage,
   KeyDrillPage,
   StatsPage,
-  WordInvadersPage,
 } from '@/pages/Placeholder';
 
 export function App() {
@@ -20,7 +20,7 @@ export function App() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/article" element={<ArticlePage />} />
-            <Route path="/word-invaders" element={<WordInvadersPage />} />
+            <Route path="/word-invaders" element={<RealWordInvadersPage />} />
             <Route path="/bubble" element={<BubblePage />} />
             <Route path="/key-drill" element={<KeyDrillPage />} />
             <Route path="/stats" element={<StatsPage />} />

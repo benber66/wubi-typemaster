@@ -1,6 +1,6 @@
 {
   "name": "wubi-typemaster",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "跨平台五笔字型打字练习软件，复刻 TypeMaster 体验",
   "main": "./out/main/index.js",
@@ -21,7 +21,9 @@
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev": "electron-vite dev",
+    "dev:web": "vite -c vite.web.config.ts",
     "build": "electron-vite build",
+    "build:web": "vite build -c vite.web.config.ts",
     "preview": "electron-vite preview",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json",
@@ -37,6 +39,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "serve-storybook": "node scripts/serve-storybook.mjs 6006",
+    "serve:web": "node scripts/serve-static.mjs out/renderer-test 5173",
     "build:win": "electron-vite build && electron-builder --win",
     "build:linux": "electron-vite build && electron-builder --linux",
     "build:mac": "electron-vite build && electron-builder --mac",

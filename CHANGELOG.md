@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-06
+
+### Added
+- **Phase 3.5 会话持久化** (`src/lib/db/sessions.ts`)
+  - `insertSession` 原子事务：practice_sessions + session_errors
+  - `getSession` / `listSessions` / `getSessionErrors` / `deleteSession`
+  - `summarizeSessions` 聚合统计（avg/best wpm, accuracy, errors, totals）
+  - `toCharErrors` 持久化模型 → 内存模型转换
+  - 17 个单元测试
+- **Phase 4 WordInvaders 游戏** (`src/lib/game/word-invaders.ts` + `src/components/PixiInvaders/` + `src/pages/WordInvaders/`)
+  - 游戏核心：spawn / move / match / hit / miss（16 个单元测试）
+  - PixiJS 8 渲染器：Graphics + Text + Container 缓存池
+  - 页面：得分/击落/漏掉/WPM/准确率 · 实时输入 · 暂停/继续/Game Over
+  - 键位追踪 + 实时输入框
+  - 1 个 Storybook 故事
+- **Phase 7 Electron 主进程** (`electron/main.ts` + `electron/preload.ts` + `electron/ipc/`)
+  - `ipc/db.ts` 用户数据目录管理 + 自动迁移 + 启动时 lazy seed
+  - `ipc/wubi.ts` 单字/编码/词组/核心池查询 IPC
+  - `ipc/sessions.ts` 6 个会话管理 IPC
+  - `ipc/settings.ts` 4 个设置 IPC
+  - `ipc/updater.ts` electron-updater 包装 + 状态推送
+  - `preload.ts` 完整类型化 `window.api` 暴露
+  - `types/electron.d.ts` ElectronAPI 类型声明
+  - 主进程构建：main 24KB + preload 4KB + renderer 622KB
+- **Playwright E2E** (`tests/e2e/*.web.spec.ts` + `tests/e2e/app.electron.spec.ts`)
+  - 9 个 web 测试：Home / Article / WordInvaders / Settings 流程
+  - 2 个 Electron 启动测试（带 built 跳过）
+  - `scripts/serve-static.mjs` SPA fallback 静态服务器
+  - `vite.web.config.ts` 独立 web 构建配置
+  - `dev:web` / `build:web` / `serve:web` npm 脚本
+  - 修 electron-vite 别名：main/preload/renderer 共享 `@` / `@electron` / `@tests`
+
+### Total tests
+- 145 → **178 unit + 9 e2e = 187 total**
+
 ## [0.3.0] - 2026-06-06
 
 ### Added
