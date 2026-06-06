@@ -1,10 +1,9 @@
-name: E2E Tests
+name: E2E
 
 on:
-  pull_request:
-    branches: [main]
-    types: [labeled]
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
 
 env:
@@ -17,16 +16,12 @@ concurrency:
 
 jobs:
   e2e:
-    name: E2E (${{ matrix.os }})
-    if: |
-      github.event_name == 'push' ||
-      contains(github.event.pull_request.labels.*.name, 'run-e2e')
+    name: Playwright E2E
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-
     steps:
       - uses: actions/checkout@v4
 
@@ -42,18 +37,20 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm playwright install --with-deps
+        run: pnpm exec playwright install --with-deps chromium
 
-      - name: Build app
-        run: pnpm build
+      - name: Build renderer (web target)
+        run: pnpm build:web
 
       - name: Run E2E tests
-        run: pnpm test:e2e
+        run: pnpm test:e2e -- --project=web
 
-      - name: Upload test results
+      - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ matrix.os }}
-          path: playwright-report/
+          path: |
+            test-results/
+            playwright-report/
           retention-days: 7

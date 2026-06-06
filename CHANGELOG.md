@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-06
+
+### Added
+- **Article → sessions 自动落库**
+  - `useEffect` 监听 `status === 'completed'`，调用 `window.api.sessions.insert(...)`
+  - 完成页显示"已保存到历史记录（#{id}）"或"保存失败"提示
+  - 通过 `textId` 字段记录文本来源
+- **Stats 页面** (`src/pages/Stats/`)
+  - 7 张汇总卡片：总练习 / 平均 WPM / 最佳 WPM / 总字数 / 平均准确率 / 总错字 / 总用时
+  - 模式筛选：全部 / article / word-invaders / bubble / key-drill
+  - Recharts 折线图：WPM 趋势
+  - Recharts 柱状图：每场错字数
+  - 最近 50 场练习表格（可删除）
+  - IPC 不可用时显示降级提示
+  - 1 个 Storybook 故事
+- **electron-builder 配置** (`electron-builder.yml`)
+  - Windows: NSIS + Portable（x64）
+  - Linux: AppImage + deb（x64）
+  - macOS: dmg（占位）
+  - extraResources: `src/data/*.json` 打包到 `resources/data/`
+  - asarUnpack: better-sqlite3 native binding
+  - publish: Gitee releases generic provider
+- **GitHub Actions E2E workflow** (`.github/workflows/e2e.yml`)
+  - 矩阵：ubuntu-latest + windows-latest
+  - Playwright + chromium
+  - 上传 test-results 产物
+
+### Changed
+- `src/pages/Placeholder/index.tsx` 移除 Article/WordInvaders/Stats 旧占位（已被真实页面取代）
+
+### Total tests
+- 178 unit + 9 e2e = 187 → 维持（Stats 端到端靠 e2e + 真实 db 验证）
+
 ## [0.4.0] - 2026-06-06
 
 ### Added

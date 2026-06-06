@@ -117,10 +117,10 @@ export function HomePage() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>当前版本</CardDescription>
-            <CardTitle className="text-2xl">v0.4.0</CardTitle>
+            <CardTitle className="text-2xl">v0.5.0</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">Phase 3+4 · Article + WordInvaders</p>
+            <p className="text-xs text-muted-foreground">Phase 3.5/4/7 · Article + WordInvaders + Stats</p>
           </CardContent>
         </Card>
       </section>

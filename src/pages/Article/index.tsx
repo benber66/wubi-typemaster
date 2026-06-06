@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { VirtualKeyboard } from '@/components/VirtualKeyboard';
@@ -85,6 +85,7 @@ export function ArticlePage() {
   const targetText = usePractice((s) => s.targetText);
   const position = usePractice((s) => s.position);
   const errors = usePractice((s) => s.errors);
+  const textId = usePractice((s) => s.textId);
   const start = usePractice((s) => s.start);
   const commit = usePractice((s) => s.commit);
   const reset = usePractice((s) => s.reset);
@@ -93,8 +94,53 @@ export function ArticlePage() {
   const [selectedTextId, setSelectedTextId] = useState<string>(SAMPLE_TEXTS[0]?.id ?? '');
   const [elapsed, setElapsed] = useState(0);
   const [hintChar, setHintChar] = useState<string | null>(null);
+  const [savedSessionId, setSavedSessionId] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const errorInfo = errors[errors.length - 1];
+  const startTimeRef = useRef<number | null>(null);
+
+  // Persist session to DB on completion
+  const persistSession = useCallback(async () => {
+    if (status !== 'completed') return;
+    if (savedSessionId !== null) return;
+    if (typeof window === 'undefined' || !window.api) return;
+    const result = getResult();
+    if (result.total === 0) return;
+    try {
+      const id = await window.api.sessions.insert(
+        {
+          mode: 'article',
+          startedAt: startTimeRef.current ?? Date.now() - result.durationMs,
+          endedAt: Date.now(),
+          durationMs: result.durationMs,
+          totalChars: result.total,
+          correctChars: result.correct,
+          wpm: result.wpm,
+          accuracy: result.accuracy,
+          textSource: textId,
+          configJson: null,
+        },
+        result.errors.map((e) => ({
+          position: e.position,
+          expected: e.expected,
+          typed: e.typed,
+          expectedCode: e.expectedCode,
+          typedCode: e.typedCode,
+        })),
+      );
+      setSavedSessionId(id);
+      setSaveError(null);
+    } catch (err) {
+      setSaveError((err as Error).message);
+    }
+  }, [status, savedSessionId, getResult, textId]);
+
+  useEffect(() => {
+    if (status === 'completed') {
+      void persistSession();
+    }
+  }, [status, persistSession]);
 
   // Tick timer while running
   useEffect(() => {
@@ -110,7 +156,12 @@ export function ArticlePage() {
 
   // Reset elapsed on start
   useEffect(() => {
-    if (status === 'running') setElapsed(0);
+    if (status === 'running') {
+      setElapsed(0);
+      setSavedSessionId(null);
+      setSaveError(null);
+      startTimeRef.current = Date.now();
+    }
   }, [status, targetText]);
 
   const activeChar = usePractice((s) => s.targetText[s.position] ?? null);
@@ -287,6 +338,16 @@ export function ArticlePage() {
                     <span>输入 <span className="font-mono text-destructive">{e.typed}</span> ({e.typedCode ?? '—'})</span>
                   </div>
                 ))}
+              </div>
+            )}
+            {savedSessionId !== null && (
+              <div className="rounded-md border border-green-500/30 bg-green-500/5 px-3 py-2 text-xs text-green-700 dark:text-green-300">
+                ✓ 已保存到历史记录（#{savedSessionId}）
+              </div>
+            )}
+            {saveError !== null && (
+              <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                保存失败：{saveError}
               </div>
             )}
             <Button onClick={handleReset} className="w-full" size="lg">
