@@ -35,7 +35,7 @@ const MODES: ReadonlyArray<Mode> = [
     desc: '词组专项训练 · 上升气泡',
     icon: <CircleDot className="h-6 w-6" />,
     path: '/bubble',
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'key-drill',
@@ -43,7 +43,7 @@ const MODES: ReadonlyArray<Mode> = [
     desc: '基于个人弱键统计的针对性训练',
     icon: <Crosshair className="h-6 w-6" />,
     path: '/key-drill',
-    status: 'coming-soon',
+    status: 'available',
   },
 ];
 
@@ -117,10 +117,10 @@ export function HomePage() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>当前版本</CardDescription>
-            <CardTitle className="text-2xl">v0.5.0</CardTitle>
+            <CardTitle className="text-2xl">v0.6.0</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">Phase 3.5/4/7 · Article + WordInvaders + Stats</p>
+            <p className="text-xs text-muted-foreground">Phase 3-6 · 4 模式 + Stats 全就绪</p>
           </CardContent>
         </Card>
       </section>

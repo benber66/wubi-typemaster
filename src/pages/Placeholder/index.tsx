@@ -28,10 +28,6 @@ function Placeholder({ title, phase, desc }: PlaceholderProps) {
   );
 }
 
-export function BubblePage() {
-  return <Placeholder title="Bubble" phase="Phase 5" desc="词组专项训练 · 上升气泡" />;
-}
-
-export function KeyDrillPage() {
-  return <Placeholder title="KeyDrill" phase="Phase 5" desc="基于个人弱键统计的针对性训练" />;
+export function StatsPage() {
+  return <Placeholder title="统计" phase="Phase 4" desc="历史记录、趋势图、热力图、错字本" />;
 }

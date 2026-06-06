@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-06
+
+### Added
+- **Phase 5: Bubble 模式** (`src/pages/Bubble/`, `src/components/PixiBubbles/`, `src/lib/game/bubble.ts`)
+  - 词组从底部上升，蓝色高亮前缀匹配，完全匹配后气泡爆裂（+10/字）
+  - 漏 10 个 → Game Over
+  - PixiJS 8 圆角 Graphics 渲染
+  - 10 个 lib 单元测试
+- **Phase 6: KeyDrill 模式** (`src/pages/KeyDrill/`, `src/lib/game/key-drill.ts`)
+  - 基于个人弱键统计的针对性训练
+  - 拖动条配置：目标弱键数 (1-8) + 训练字数 (10-50)
+  - 当前字 + 码可视化（已输绿色 / 错误红 / 未输灰）
+  - 实时按键统计 + 完成页弱键 Top 5
+  - 14 个 lib 单元测试
+- **`useGameSession` hook** (`src/hooks/use-game-session.ts`)
+  - 统一封装：游戏完成时自动落库到 SQLite
+  - 返回 `{ savedId, saveError }`，防重复插入
+- **Bubble / WordInvaders / KeyDrill 自动落库**
+  - 完成页显示"已保存到历史记录（#{id}）"
+  - Stats 模式筛选 (bubble/key-drill/word-invaders) 现在能正确显示数据
+
+### Changed
+- `src/App.tsx` 路由：`BubblePage`/`KeyDrillPage` 从 Placeholder 切到真实实现
+- `src/pages/Home/index.tsx` 4 模式全部标 `available`，版本号 → v0.6.0
+- `src/pages/Placeholder/index.tsx` 移除 Bubble/KeyDrill 旧占位
+
+### Total tests
+- 199 unit + 9 e2e = 208 tests passing
+
 ## [0.5.0] - 2026-06-06
 
 ### Added

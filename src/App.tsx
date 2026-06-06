@@ -6,11 +6,9 @@ import { SettingsPage } from '@/pages/Settings';
 import { KeyboardPage } from '@/pages/Keyboard';
 import { ArticlePage } from '@/pages/Article';
 import { WordInvadersPage as RealWordInvadersPage } from '@/pages/WordInvaders';
+import { KeyDrillPage } from '@/pages/KeyDrill';
+import { BubblePage } from '@/pages/Bubble';
 import { StatsPage } from '@/pages/Stats';
-import {
-  BubblePage,
-  KeyDrillPage,
-} from '@/pages/Placeholder';
 
 export function App() {
   return (

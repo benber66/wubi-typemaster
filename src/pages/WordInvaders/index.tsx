@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PixiInvaders } from '@/components/PixiInvaders';
 import { useSettings } from '@/stores/settings';
+import { useGameSession } from '@/hooks/use-game-session';
 import {
   DEFAULT_INVADER_CONFIG,
   type GameState,
@@ -144,6 +145,20 @@ export function WordInvadersPage() {
   const durationMs = state.endTime && state.startTime ? state.endTime - state.startTime : Date.now() - (state.startTime ?? Date.now());
   const wpm = getWpm(state.destroyed, durationMs);
 
+  const { savedId, saveError } = useGameSession({
+    enabled: state.status === 'gameover',
+    mode: 'word-invaders',
+    startedAt: state.startTime,
+    endedAt: state.endTime,
+    durationMs,
+    totalChars: state.destroyed,
+    correctChars: state.correctAttempts,
+    wpm,
+    accuracy,
+    textSource: 'word-invaders',
+    errors: [],
+  });
+
   return (
     <div className="mx-auto max-w-5xl space-y-4 p-8">
       <header>
@@ -243,6 +258,12 @@ export function WordInvadersPage() {
                 <div className="text-2xl font-bold">{(accuracy * 100).toFixed(1)}%</div>
               </div>
             </div>
+            {savedId !== null && (
+              <div className="text-xs text-muted-foreground">已保存到历史记录（#{savedId}）</div>
+            )}
+            {saveError !== null && (
+              <div className="text-xs text-destructive">保存失败：{saveError}</div>
+            )}
             <Button onClick={handleStart} size="lg" className="w-full">再来一局</Button>
           </CardContent>
         </Card>
