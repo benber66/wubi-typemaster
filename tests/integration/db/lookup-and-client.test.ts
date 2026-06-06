@@ -40,18 +40,20 @@ import {
 } from '../../../src/lib/wubi/lookup';
 
 const SAMPLE_CHARS: WubiChar[] = [
-  { char: '中', code: 'k', weight: 5000, codeLength: 1 },
-  { char: '国', code: 'l', weight: 4999, codeLength: 1 },
-  { char: '我', code: 'q', weight: 4998, codeLength: 1 },
-  { char: '的', code: 'r', weight: 4997, codeLength: 1 },
-  { char: '大', code: 'dd', weight: 4980, codeLength: 2 },
+  { char: '中', code: 'k', weight: 5000, codeLength: 1, isCore: true },
+  { char: '国', code: 'l', weight: 4999, codeLength: 1, isCore: true },
+  { char: '我', code: 'q', weight: 4998, codeLength: 1, isCore: true },
+  { char: '的', code: 'r', weight: 4997, codeLength: 1, isCore: true },
+  { char: '大', code: 'dd', weight: 4980, codeLength: 2, isCore: true },
+  { char: '乾', code: 'fjjt', weight: 50, codeLength: 4, isCore: false },
 ];
 
 const SAMPLE_WORDS: WubiWord[] = [
-  { word: '中国', code: 'lgkl', weight: 5000, length: 2 },
-  { word: '我们', code: 'trwu', weight: 4999, length: 2 },
-  { word: '大地', code: 'ddfb', weight: 600, length: 2 },
-  { word: '大规模', code: 'ddtg', weight: 400, length: 3 },
+  { word: '中国', code: 'lgkl', weight: 5000, length: 2, isCore: true },
+  { word: '我们', code: 'trwu', weight: 4999, length: 2, isCore: true },
+  { word: '大地', code: 'ddfb', weight: 600, length: 2, isCore: true },
+  { word: '大规模', code: 'ddtg', weight: 400, length: 3, isCore: true },
+  { word: '乾乾', code: 'fjjf', weight: 10, length: 2, isCore: false },
 ];
 
 describe('db/client', () => {
@@ -265,11 +267,36 @@ describe('lib/wubi/lookup with DB', () => {
     expect(lookup.randomWords(0)).toEqual([]);
   });
 
-  it('createLookup: size 返回码表大小', () => {
+  it('createLookup: randomCoreChars 只返回核心字', () => {
+    const lookup = createLookup(db);
+    const r = lookup.randomCoreChars(10);
+    expect(r.every((c) => c.isCore)).toBe(true);
+  });
+
+  it('createLookup: randomCoreWords 只返回核心词', () => {
+    const lookup = createLookup(db);
+    const r = lookup.randomCoreWords(10);
+    expect(r.every((w) => w.isCore)).toBe(true);
+  });
+
+  it('createLookup: randomCoreWords 按长度', () => {
+    const lookup = createLookup(db);
+    const r = lookup.randomCoreWords(5, 2);
+    expect(r.every((w) => w.isCore && w.length === 2)).toBe(true);
+  });
+
+  it('createLookup: randomCoreChars count=0', () => {
+    const lookup = createLookup(db);
+    expect(lookup.randomCoreChars(0)).toEqual([]);
+  });
+
+  it('createLookup: size 返回码表与核心集大小', () => {
     const lookup = createLookup(db);
     const s = lookup.size();
     expect(s.chars).toBe(SAMPLE_CHARS.length);
     expect(s.words).toBe(SAMPLE_WORDS.length);
+    expect(s.coreChars).toBe(SAMPLE_CHARS.filter((c) => c.isCore).length);
+    expect(s.coreWords).toBe(SAMPLE_WORDS.filter((w) => w.isCore).length);
   });
 });
 
@@ -291,6 +318,8 @@ describe('seedDatabase', () => {
     const result = seedDatabase(db, SAMPLE_CHARS, SAMPLE_WORDS);
     expect(result.chars).toBe(SAMPLE_CHARS.length);
     expect(result.words).toBe(SAMPLE_WORDS.length);
+    expect(result.coreChars).toBe(SAMPLE_CHARS.filter((c) => c.isCore).length);
+    expect(result.coreWords).toBe(SAMPLE_WORDS.filter((w) => w.isCore).length);
     const count = (db.prepare('SELECT COUNT(*) as c FROM wubi_chars').get() as { c: number }).c;
     expect(count).toBe(SAMPLE_CHARS.length);
     closeDb(db);
@@ -300,7 +329,9 @@ describe('seedDatabase', () => {
     const db = createDbClient({ path: dbPath });
     seedDatabase(db, SAMPLE_CHARS, SAMPLE_WORDS);
     // 再次灌入：只更新"中"的编码，其他字不变
-    const updated: WubiChar[] = [{ char: '中', code: 'kkkk', weight: 9999, codeLength: 4 }];
+    const updated: WubiChar[] = [
+      { char: '中', code: 'kkkk', weight: 9999, codeLength: 4, isCore: true },
+    ];
     seedDatabase(db, updated, []);
     const row = db.prepare('SELECT wubi_code as code FROM wubi_chars WHERE char = ?').get('中') as
       | { code: string }

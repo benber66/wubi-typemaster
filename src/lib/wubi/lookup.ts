@@ -8,6 +8,8 @@ export interface WubiChar {
   code: string;
   weight: number;
   codeLength: number;
+  /** 是否在 3500 常用字集合中（Jun Da 频次排名前 3500） */
+  isCore: boolean;
 }
 
 /**
@@ -18,6 +20,8 @@ export interface WubiWord {
   code: string;
   weight: number;
   length: number;
+  /** 是否在 10000 常用词集合中（SUBTLEX-CH 频次排名前 10000） */
+  isCore: boolean;
 }
 
 /**
@@ -30,6 +34,7 @@ export interface LookupResult {
   type: 'char' | 'word';
   /** 词组字数，单字为 1 */
   length: number;
+  isCore: boolean;
 }
 
 export interface WubiLookup {
@@ -43,12 +48,16 @@ export interface WubiLookup {
   lookupByCode(code: string): WubiWord[];
   /** 前缀查询：输入部分编码，返回匹配的单字+词组（按权重降序） */
   lookupPrefix(prefix: string, limit?: number): LookupResult[];
-  /** 随机取若干单字（按权重加权或完全随机） */
+  /** 随机取若干单字（从全量中取） */
   randomChars(count: number): WubiChar[];
-  /** 随机取若干词组（按词长筛选） */
+  /** 随机取若干词组（从全量中取） */
   randomWords(count: number, length?: 2 | 3 | 4): WubiWord[];
+  /** 随机取若干核心单字（用于默认练习） */
+  randomCoreChars(count: number): WubiChar[];
+  /** 随机取若干核心词组（用于默认练习） */
+  randomCoreWords(count: number, length?: 2 | 3 | 4): WubiWord[];
   /** 获取码表大小（调试用） */
-  size(): { chars: number; words: number };
+  size(): { chars: number; words: number; coreChars: number; coreWords: number };
 }
 
 /**
@@ -98,6 +107,7 @@ export function createLookupFromJson(chars: WubiChar[], words: WubiWord[]): Wubi
               weight: c.weight,
               type: 'char',
               length: 1,
+              isCore: c.isCore,
             });
           }
         }
@@ -111,6 +121,7 @@ export function createLookupFromJson(chars: WubiChar[], words: WubiWord[]): Wubi
               weight: w.weight,
               type: 'word',
               length: w.length,
+              isCore: w.isCore,
             });
           }
         }
@@ -140,7 +151,35 @@ export function createLookupFromJson(chars: WubiChar[], words: WubiWord[]): Wubi
       }
       return result;
     },
-    size: () => ({ chars: chars.length, words: words.length }),
+    randomCoreChars: (count) => {
+      const pool = chars.filter((c) => c.isCore);
+      if (pool.length === 0 || count <= 0) return [];
+      const result: WubiChar[] = [];
+      for (let i = 0; i < count; i++) {
+        const idx = Math.floor(Math.random() * pool.length);
+        const c = pool[idx];
+        if (c) result.push(c);
+      }
+      return result;
+    },
+    randomCoreWords: (count, length) => {
+      let pool = words.filter((w) => w.isCore);
+      if (length) pool = pool.filter((w) => w.length === length);
+      if (pool.length === 0 || count <= 0) return [];
+      const result: WubiWord[] = [];
+      for (let i = 0; i < count; i++) {
+        const idx = Math.floor(Math.random() * pool.length);
+        const w = pool[idx];
+        if (w) result.push(w);
+      }
+      return result;
+    },
+    size: () => ({
+      chars: chars.length,
+      words: words.length,
+      coreChars: chars.filter((c) => c.isCore).length,
+      coreWords: words.filter((w) => w.isCore).length,
+    }),
   };
 }
 
@@ -149,33 +188,48 @@ export function createLookupFromJson(chars: WubiChar[], words: WubiWord[]): Wubi
  */
 export function createLookup(db: Database.Database): WubiLookup {
   const charStmt = db.prepare<[string], WubiChar>(
-    'SELECT char, wubi_code as code, weight, code_length as codeLength FROM wubi_chars WHERE char = ?',
+    'SELECT char, wubi_code as code, weight, code_length as codeLength, is_core as isCore FROM wubi_chars WHERE char = ?',
   );
   const charsByCodeStmt = db.prepare<[string], WubiChar>(
-    'SELECT char, wubi_code as code, weight, code_length as codeLength FROM wubi_chars WHERE wubi_code = ? ORDER BY weight DESC',
+    'SELECT char, wubi_code as code, weight, code_length as codeLength, is_core as isCore FROM wubi_chars WHERE wubi_code = ? ORDER BY weight DESC',
   );
   const wordStmt = db.prepare<[string], WubiWord>(
-    'SELECT word, wubi_code as code, weight, length FROM wubi_words WHERE word = ?',
+    'SELECT word, wubi_code as code, weight, length, is_core as isCore FROM wubi_words WHERE word = ?',
   );
   const wordsByCodeStmt = db.prepare<[string], WubiWord>(
-    'SELECT word, wubi_code as code, weight, length FROM wubi_words WHERE wubi_code = ? ORDER BY weight DESC',
+    'SELECT word, wubi_code as code, weight, length, is_core as isCore FROM wubi_words WHERE wubi_code = ? ORDER BY weight DESC',
   );
   const charsPrefixStmt = db.prepare<[string, number], WubiChar>(
-    'SELECT char, wubi_code as code, weight, code_length as codeLength FROM wubi_chars WHERE wubi_code LIKE ? ORDER BY weight DESC LIMIT ?',
+    'SELECT char, wubi_code as code, weight, code_length as codeLength, is_core as isCore FROM wubi_chars WHERE wubi_code LIKE ? ORDER BY weight DESC LIMIT ?',
   );
   const wordsPrefixStmt = db.prepare<[string, number], WubiWord>(
-    'SELECT word, wubi_code as code, weight, length FROM wubi_words WHERE wubi_code LIKE ? ORDER BY weight DESC LIMIT ?',
+    'SELECT word, wubi_code as code, weight, length, is_core as isCore FROM wubi_words WHERE wubi_code LIKE ? ORDER BY weight DESC LIMIT ?',
   );
   const countCharStmt = db.prepare<[], { c: number }>('SELECT COUNT(*) as c FROM wubi_chars');
   const countWordStmt = db.prepare<[], { c: number }>('SELECT COUNT(*) as c FROM wubi_words');
+  const countCoreCharStmt = db.prepare<[], { c: number }>(
+    'SELECT COUNT(*) as c FROM wubi_chars WHERE is_core = 1',
+  );
+  const countCoreWordStmt = db.prepare<[], { c: number }>(
+    'SELECT COUNT(*) as c FROM wubi_words WHERE is_core = 1',
+  );
   const allCharsStmt = db.prepare<[number, number], WubiChar>(
-    'SELECT char, wubi_code as code, weight, code_length as codeLength FROM wubi_chars LIMIT ? OFFSET ?',
+    'SELECT char, wubi_code as code, weight, code_length as codeLength, is_core as isCore FROM wubi_chars LIMIT ? OFFSET ?',
   );
   const allWordsByLenStmt = db.prepare<[number, number, number], WubiWord>(
-    'SELECT word, wubi_code as code, weight, length FROM wubi_words WHERE length = ? LIMIT ? OFFSET ?',
+    'SELECT word, wubi_code as code, weight, length, is_core as isCore FROM wubi_words WHERE length = ? LIMIT ? OFFSET ?',
   );
   const allWordsStmt = db.prepare<[number, number], WubiWord>(
-    'SELECT word, wubi_code as code, weight, length FROM wubi_words LIMIT ? OFFSET ?',
+    'SELECT word, wubi_code as code, weight, length, is_core as isCore FROM wubi_words LIMIT ? OFFSET ?',
+  );
+  const coreCharsStmt = db.prepare<[number, number], WubiChar>(
+    'SELECT char, wubi_code as code, weight, code_length as codeLength, is_core as isCore FROM wubi_chars WHERE is_core = 1 LIMIT ? OFFSET ?',
+  );
+  const coreWordsByLenStmt = db.prepare<[number, number, number], WubiWord>(
+    'SELECT word, wubi_code as code, weight, length, is_core as isCore FROM wubi_words WHERE is_core = 1 AND length = ? LIMIT ? OFFSET ?',
+  );
+  const coreWordsStmt = db.prepare<[number, number], WubiWord>(
+    'SELECT word, wubi_code as code, weight, length, is_core as isCore FROM wubi_words WHERE is_core = 1 LIMIT ? OFFSET ?',
   );
 
   return {
@@ -196,6 +250,7 @@ export function createLookup(db: Database.Database): WubiLookup {
           weight: c.weight,
           type: 'char' as const,
           length: 1,
+          isCore: Boolean(c.isCore),
         })),
         ...wordResults.map((w) => ({
           text: w.word,
@@ -203,6 +258,7 @@ export function createLookup(db: Database.Database): WubiLookup {
           weight: w.weight,
           type: 'word' as const,
           length: w.length,
+          isCore: Boolean(w.isCore),
         })),
       ];
       merged.sort((a, b) => b.weight - a.weight);
@@ -223,8 +279,7 @@ export function createLookup(db: Database.Database): WubiLookup {
     randomWords: (count, length) => {
       if (count <= 0) return [];
       if (length) {
-        const total = (countWordStmt.get()?.c) ?? 0;
-        // 简化：没有按 length 计数的快速方法，先全查再过滤（数据量小）
+        const total = countWordStmt.get()?.c ?? 0;
         const result: WubiWord[] = [];
         for (let i = 0; i < count * 3 && result.length < count; i++) {
           const offset = Math.floor(Math.random() * total);
@@ -233,7 +288,7 @@ export function createLookup(db: Database.Database): WubiLookup {
         }
         return result;
       } else {
-        const total = (countWordStmt.get()?.c) ?? 0;
+        const total = countWordStmt.get()?.c ?? 0;
         const result: WubiWord[] = [];
         for (let i = 0; i < count; i++) {
           const offset = Math.floor(Math.random() * total);
@@ -243,9 +298,45 @@ export function createLookup(db: Database.Database): WubiLookup {
         return result;
       }
     },
+    randomCoreChars: (count) => {
+      if (count <= 0) return [];
+      const { c: total } = countCoreCharStmt.get() ?? { c: 0 };
+      if (total === 0) return [];
+      const result: WubiChar[] = [];
+      for (let i = 0; i < count; i++) {
+        const offset = Math.floor(Math.random() * total);
+        const row = coreCharsStmt.get(1, offset);
+        if (row) result.push(row);
+      }
+      return result;
+    },
+    randomCoreWords: (count, length) => {
+      if (count <= 0) return [];
+      if (length) {
+        const total = countCoreWordStmt.get()?.c ?? 0;
+        const result: WubiWord[] = [];
+        for (let i = 0; i < count * 3 && result.length < count; i++) {
+          const offset = Math.floor(Math.random() * total);
+          const row = coreWordsByLenStmt.get(length, 1, offset);
+          if (row) result.push(row);
+        }
+        return result;
+      } else {
+        const total = countCoreWordStmt.get()?.c ?? 0;
+        const result: WubiWord[] = [];
+        for (let i = 0; i < count; i++) {
+          const offset = Math.floor(Math.random() * total);
+          const row = coreWordsStmt.get(1, offset);
+          if (row) result.push(row);
+        }
+        return result;
+      }
+    },
     size: () => ({
       chars: countCharStmt.get()?.c ?? 0,
       words: countWordStmt.get()?.c ?? 0,
+      coreChars: countCoreCharStmt.get()?.c ?? 0,
+      coreWords: countCoreWordStmt.get()?.c ?? 0,
     }),
   };
 }
@@ -257,23 +348,28 @@ export function seedDatabase(
   db: Database.Database,
   chars: WubiChar[],
   words: WubiWord[],
-): { chars: number; words: number } {
+): { chars: number; words: number; coreChars: number; coreWords: number } {
   const insertChar = db.prepare(
-    'INSERT OR REPLACE INTO wubi_chars (char, wubi_code, weight, is_primary) VALUES (?, ?, ?, 1)',
+    'INSERT OR REPLACE INTO wubi_chars (char, wubi_code, weight, is_core, is_primary) VALUES (?, ?, ?, ?, 1)',
   );
   const insertWord = db.prepare(
-    'INSERT OR REPLACE INTO wubi_words (word, wubi_code, weight, length) VALUES (?, ?, ?, ?)',
+    'INSERT OR REPLACE INTO wubi_words (word, wubi_code, weight, length, is_core) VALUES (?, ?, ?, ?, ?)',
   );
+
+  let coreChars = 0;
+  let coreWords = 0;
 
   const tx = db.transaction(() => {
     for (const c of chars) {
-      insertChar.run(c.char, c.code, c.weight);
+      insertChar.run(c.char, c.code, c.weight, c.isCore ? 1 : 0);
+      if (c.isCore) coreChars++;
     }
     for (const w of words) {
-      insertWord.run(w.word, w.code, w.weight, w.length);
+      insertWord.run(w.word, w.code, w.weight, w.length, w.isCore ? 1 : 0);
+      if (w.isCore) coreWords++;
     }
   });
   tx();
 
-  return { chars: chars.length, words: words.length };
+  return { chars: chars.length, words: words.length, coreChars, coreWords };
 }

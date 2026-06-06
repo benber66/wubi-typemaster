@@ -1,0 +1,171 @@
+{
+  "builtAt": "2026-06-06T02:12:31.712Z",
+  "sources": {
+    "wubi": {
+      "name": "rime-wubi86-jidian",
+      "license": "Apache-2.0"
+    },
+    "charRank": {
+      "name": "hanziDB (Jun Da)",
+      "license": "MIT",
+      "size": 9900
+    },
+    "wordRank": {
+      "name": "SUBTLEX-CH-WF (Cai & Brysbaert 2010)",
+      "license": "Free for research",
+      "size": 99121
+    }
+  },
+  "coreThresholds": {
+    "chars": 3500,
+    "words": 10000
+  },
+  "stats": {
+    "totalChars": 21586,
+    "coreChars": 3500,
+    "totalWords": 62323,
+    "coreWords": 7301,
+    "skippedInvalid": 17
+  },
+  "wordsByLength": {
+    "2": 49306,
+    "3": 4960,
+    "4": 8057
+  },
+  "sample": {
+    "coreChars": [
+      {
+        "char": "的",
+        "code": "r",
+        "weight": 20,
+        "isCore": true
+      },
+      {
+        "char": "一",
+        "code": "g",
+        "weight": 20,
+        "isCore": true
+      },
+      {
+        "char": "是",
+        "code": "j",
+        "weight": 20,
+        "isCore": true
+      },
+      {
+        "char": "不",
+        "code": "i",
+        "weight": 20,
+        "isCore": true
+      },
+      {
+        "char": "了",
+        "code": "b",
+        "weight": 20,
+        "isCore": true
+      },
+      {
+        "char": "在",
+        "code": "d",
+        "weight": 20,
+        "isCore": true
+      },
+      {
+        "char": "人",
+        "code": "w",
+        "weight": 20,
+        "isCore": true
+      },
+      {
+        "char": "有",
+        "code": "e",
+        "weight": 20,
+        "isCore": true
+      },
+      {
+        "char": "我",
+        "code": "q",
+        "weight": 20,
+        "isCore": true
+      },
+      {
+        "char": "他",
+        "code": "wb",
+        "weight": 10,
+        "isCore": true
+      }
+    ],
+    "coreWords": [
+      {
+        "word": "我们",
+        "code": "trwu",
+        "weight": 10,
+        "length": 2,
+        "isCore": true
+      },
+      {
+        "word": "什么",
+        "code": "wftc",
+        "weight": 10,
+        "length": 2,
+        "isCore": true
+      },
+      {
+        "word": "知道",
+        "code": "tdut",
+        "weight": 10,
+        "length": 2,
+        "isCore": true
+      },
+      {
+        "word": "他们",
+        "code": "wbwu",
+        "weight": 10,
+        "length": 2,
+        "isCore": true
+      },
+      {
+        "word": "一个",
+        "code": "ggwh",
+        "weight": 10,
+        "length": 2,
+        "isCore": true
+      },
+      {
+        "word": "你们",
+        "code": "wqwu",
+        "weight": 20,
+        "length": 2,
+        "isCore": true
+      },
+      {
+        "word": "没有",
+        "code": "imde",
+        "weight": 10,
+        "length": 2,
+        "isCore": true
+      },
+      {
+        "word": "这个",
+        "code": "ypwh",
+        "weight": 10,
+        "length": 2,
+        "isCore": true
+      },
+      {
+        "word": "怎么",
+        "code": "thtc",
+        "weight": 20,
+        "length": 2,
+        "isCore": true
+      },
+      {
+        "word": "现在",
+        "code": "gmdh",
+        "weight": 20,
+        "length": 2,
+        "isCore": true
+      }
+    ]
+  }
+}

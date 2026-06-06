@@ -120,7 +120,15 @@ async function main(): Promise<void> {
   // 直接 SQL 查询验证
   const charCount = (db.prepare('SELECT COUNT(*) as c FROM wubi_chars').get() as { c: number }).c;
   const wordCount = (db.prepare('SELECT COUNT(*) as c FROM wubi_words').get() as { c: number }).c;
-  log(`数据库内: ${charCount} 单字, ${wordCount} 词组`);
+  const coreCharCount = (
+    db.prepare('SELECT COUNT(*) as c FROM wubi_chars WHERE is_core = 1').get() as { c: number }
+  ).c;
+  const coreWordCount = (
+    db.prepare('SELECT COUNT(*) as c FROM wubi_words WHERE is_core = 1').get() as { c: number }
+  ).c;
+  log(
+    `数据库内: ${charCount} 单字 (核心 ${coreCharCount}), ${wordCount} 词组 (核心 ${coreWordCount})`,
+  );
 
   // 抽查几个常用字
   const tests = [

@@ -67,7 +67,7 @@ storybook-static/
 *.tar.gz
 
 # Local SQLite databases (Phase 1+)
-data/
+/data/         # project root data/ (output of seed-db.ts)
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm

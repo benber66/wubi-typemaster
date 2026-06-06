@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-06
+
+### Added
+- **核心数据集**：3500 常用字 + 7301 常用词，加 `isCore` 字段
+- **数据源**（参考 [data-sources.md](docs/data-sources.md)）：
+  - 汉字频次：Jun Da《现代汉语单字频率列表》via hanziDB.csv (MIT)
+  - 词组频次：SUBTLEX-CH-WF (Cai & Brysbaert 2010, GB18030 编码)
+- **数据库迁移** `002_add_is_core.sql`：wubi_chars / wubi_words 增加 `is_core` 列 + 4 个部分索引
+- **查询 API 增强**：
+  - `WubiChar` / `WubiWord` 增加 `isCore: boolean` 字段
+  - `LookupResult` 增加 `isCore` 字段
+  - 新方法：`randomCoreChars(count)` / `randomCoreWords(count, length?)`
+  - `size()` 返回 `{ chars, words, coreChars, coreWords }`
+- **数据源文档** `docs/data-sources.md`：3 个数据源完整说明 + 协议 + 数据流图
+
+### Changed
+- **build-wubi-table.ts** 重写：从 3 个数据源（wubi YAML + hanziDB + SUBTLEX）合并
+- **数据排序**：先按 `isCore` 优先，再按 Jun Da / SUBTLEX 排名，最后按 Rime 权重
+
+### Verified
+- ✅ `pnpm typecheck` 严格模式 0 错误
+- ✅ `pnpm lint` 0 错误
+- ✅ `pnpm test:coverage` 68/68 通过
+- ✅ `pnpm seed:reset` 21,586 单字 (核心 3500) + 62,323 词组 (核心 7301)
+- ✅ Top 10 核心字：的(r), 一(g), 是(j), 不(i), 了(b), 在(d), 人(w), 有(e), 我(q), 他(wb)
+- ✅ Top 10 核心词：我们(trwu), 什么(wftc), 知道(tdut), 他们(wbwu), 一个(ggwh), 你们(wqwu), 没有(imde), 这个(ypwh), 怎么(thtc), 现在(gmdh)
+
 ## [0.1.0] - 2026-06-06
 
 ### Added
@@ -66,7 +93,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 开发者文档与用户文档
 - CI/CD 工作流占位
 
-[Unreleased]: https://github.com/benber66/wubi-typemaster/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/benber66/wubi-typemaster/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/benber66/wubi-typemaster/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/benber66/wubi-typemaster/compare/v0.0.2...v0.1.0
 [0.0.2]: https://github.com/benber66/wubi-typemaster/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/benber66/wubi-typemaster/releases/tag/v0.0.1

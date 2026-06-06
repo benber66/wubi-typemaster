@@ -6,29 +6,30 @@ import {
 } from '../../../src/lib/wubi/lookup';
 
 const CHARS: WubiChar[] = [
-  { char: '中', code: 'k', weight: 5000, codeLength: 1 },
-  { char: '国', code: 'l', weight: 4999, codeLength: 1 },
-  { char: '我', code: 'q', weight: 4998, codeLength: 1 },
-  { char: '的', code: 'r', weight: 4997, codeLength: 1 },
-  { char: '是', code: 'j', weight: 4996, codeLength: 1 },
-  { char: '在', code: 'd', weight: 4995, codeLength: 1 },
-  { char: '了', code: 'b', weight: 4994, codeLength: 1 },
-  { char: '有', code: 'e', weight: 4993, codeLength: 1 },
-  { char: '工', code: 'a', weight: 4992, codeLength: 1 },
-  { char: '土', code: 'f', weight: 4991, codeLength: 1 },
-  { char: '大', code: 'dd', weight: 4980, codeLength: 2 },
-  { char: '木', code: 's', weight: 4900, codeLength: 1 },
-  { char: '乾', code: 'fjjt', weight: 100, codeLength: 4 },
-  { char: '朝', code: 'fje', weight: 200, codeLength: 3 },
+  { char: '中', code: 'k', weight: 5000, codeLength: 1, isCore: true },
+  { char: '国', code: 'l', weight: 4999, codeLength: 1, isCore: true },
+  { char: '我', code: 'q', weight: 4998, codeLength: 1, isCore: true },
+  { char: '的', code: 'r', weight: 4997, codeLength: 1, isCore: true },
+  { char: '是', code: 'j', weight: 4996, codeLength: 1, isCore: true },
+  { char: '在', code: 'd', weight: 4995, codeLength: 1, isCore: true },
+  { char: '了', code: 'b', weight: 4994, codeLength: 1, isCore: true },
+  { char: '有', code: 'e', weight: 4993, codeLength: 1, isCore: true },
+  { char: '工', code: 'a', weight: 4992, codeLength: 1, isCore: true },
+  { char: '土', code: 'f', weight: 4991, codeLength: 1, isCore: true },
+  { char: '大', code: 'dd', weight: 4980, codeLength: 2, isCore: true },
+  { char: '木', code: 's', weight: 4900, codeLength: 1, isCore: true },
+  { char: '乾', code: 'fjjt', weight: 100, codeLength: 4, isCore: false },
+  { char: '朝', code: 'fje', weight: 200, codeLength: 3, isCore: false },
 ];
 
 const WORDS: WubiWord[] = [
-  { word: '中国', code: 'lgkl', weight: 5000, length: 2 },
-  { word: '我们', code: 'trwu', weight: 4999, length: 2 },
-  { word: '的', code: 'r', weight: 1000, length: 1 }, // 词组表里也有"单字"，用于支持按词查
-  { word: '工人', code: 'arw', weight: 800, length: 2 },
-  { word: '大地', code: 'ddfb', weight: 600, length: 2 },
-  { word: '大规模', code: 'ddtg', weight: 400, length: 3 },
+  { word: '中国', code: 'lgkl', weight: 5000, length: 2, isCore: true },
+  { word: '我们', code: 'trwu', weight: 4999, length: 2, isCore: true },
+  { word: '的', code: 'r', weight: 1000, length: 1, isCore: true },
+  { word: '工人', code: 'arw', weight: 800, length: 2, isCore: true },
+  { word: '大地', code: 'ddfb', weight: 600, length: 2, isCore: true },
+  { word: '大规模', code: 'ddtg', weight: 400, length: 3, isCore: true },
+  { word: '乾乾', code: 'fjjf', weight: 50, length: 2, isCore: false },
 ];
 
 describe('createLookupFromJson', () => {
@@ -155,12 +156,13 @@ describe('createLookupFromJson', () => {
       expect(lookup.lookupPrefix('zzzzzz')).toEqual([]);
     });
 
-    it('结果中每条都带 type 和 length', () => {
+    it('结果中每条都带 type、length 和 isCore', () => {
       const r = lookup.lookupPrefix('d');
       for (const item of r) {
         expect(['char', 'word']).toContain(item.type);
         expect(item.length).toBeGreaterThanOrEqual(1);
         expect(item.text.length).toBe(item.length);
+        expect(typeof item.isCore).toBe('boolean');
       }
     });
   });
@@ -211,11 +213,54 @@ describe('createLookupFromJson', () => {
     });
   });
 
+  describe('randomCoreChars', () => {
+    it('只返回 isCore=true 的字', () => {
+      const r = lookup.randomCoreChars(20);
+      expect(r.length).toBe(20);
+      expect(r.every((c) => c.isCore)).toBe(true);
+    });
+
+    it('count=0 返回空数组', () => {
+      expect(lookup.randomCoreChars(0)).toEqual([]);
+    });
+
+    it('返回的字都在核心集内', () => {
+      const r = lookup.randomCoreChars(10);
+      const valid = new Set(CHARS.filter((c) => c.isCore).map((c) => c.char));
+      for (const c of r) {
+        expect(valid.has(c.char)).toBe(true);
+      }
+    });
+  });
+
+  describe('randomCoreWords', () => {
+    it('只返回 isCore=true 的词组', () => {
+      const r = lookup.randomCoreWords(20);
+      expect(r.length).toBe(20);
+      expect(r.every((w) => w.isCore)).toBe(true);
+    });
+
+    it('按长度过滤', () => {
+      const r = lookup.randomCoreWords(10, 2);
+      expect(r.every((w) => w.isCore && w.length === 2)).toBe(true);
+    });
+
+    it('无匹配时返回空', () => {
+      expect(lookup.randomCoreWords(5, 4)).toEqual([]);
+    });
+
+    it('count=0 返回空数组', () => {
+      expect(lookup.randomCoreWords(0)).toEqual([]);
+    });
+  });
+
   describe('size', () => {
-    it('返回码表大小', () => {
+    it('返回码表大小与核心集大小', () => {
       const s = lookup.size();
       expect(s.chars).toBe(CHARS.length);
       expect(s.words).toBe(WORDS.length);
+      expect(s.coreChars).toBe(CHARS.filter((c) => c.isCore).length);
+      expect(s.coreWords).toBe(WORDS.filter((w) => w.isCore).length);
     });
   });
 
@@ -228,7 +273,9 @@ describe('createLookupFromJson', () => {
       expect(empty.lookupPrefix('d')).toEqual([]);
       expect(empty.randomChars(5)).toEqual([]);
       expect(empty.randomWords(5)).toEqual([]);
-      expect(empty.size()).toEqual({ chars: 0, words: 0 });
+      expect(empty.randomCoreChars(5)).toEqual([]);
+      expect(empty.randomCoreWords(5)).toEqual([]);
+      expect(empty.size()).toEqual({ chars: 0, words: 0, coreChars: 0, coreWords: 0 });
     });
   });
 
