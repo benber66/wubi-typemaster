@@ -1,6 +1,6 @@
 {
   "name": "wubi-typemaster",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "description": "跨平台五笔字型打字练习软件，复刻 TypeMaster 体验",
   "main": "./out/main/index.js",

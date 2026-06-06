@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { PixiInvaders } from '@/components/PixiInvaders';
 import { useSettings } from '@/stores/settings';
 import { useGameSession } from '@/hooks/use-game-session';
+import { codeToLetter } from '@/lib/ime/key-utils';
 import {
   DEFAULT_INVADER_CONFIG,
   type GameState,
@@ -109,19 +110,25 @@ export function WordInvadersPage() {
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (state.status !== 'running') return;
     if (e.key === 'Backspace') {
+      e.preventDefault();
       setState((s) => ({ ...s, typed: s.typed.slice(0, -1) }));
       return;
     }
     if (e.key === 'Escape') {
+      e.preventDefault();
       setState((s) => ({ ...s, status: 'paused' }));
       return;
     }
-    if (e.key.length !== 1) return;
-    const ch = e.key.toLowerCase();
-    if (!/[a-z]/.test(ch)) return;
-    const next = state.typed + ch;
-    const match = findMatch(state.invaders, next);
+    // Use e.code so letter keys still register while Wubi IME is composing.
+    // During IME composition, e.key === 'Process' on Windows but e.code stays 'KeyT', etc.
+    const letter = codeToLetter(e.code) ?? e.key.toLowerCase();
+    if (!letter || letter.length !== 1 || !/[a-z]/.test(letter)) return;
+    e.preventDefault();
+    const ch = letter;
     setState((s) => {
+      if (s.status !== 'running') return s;
+      const next = s.typed + ch;
+      const match = findMatch(s.invaders, next);
       const totalAttempts = s.totalAttempts + 1;
       let correctAttempts = s.correctAttempts;
       let invaders = s.invaders;
@@ -139,6 +146,11 @@ export function WordInvadersPage() {
       }
       return { ...s, typed, invaders, score, destroyed, totalAttempts, correctAttempts };
     });
+  };
+
+  const handleCompositionEnd = () => {
+    // Reset typed buffer when IME commits a word so the next letter is fresh.
+    setState((s) => (s.typed === '' ? s : { ...s, typed: '' }));
   };
 
   const accuracy = getAccuracy(state.correctAttempts, state.totalAttempts);
@@ -215,7 +227,9 @@ export function WordInvadersPage() {
               ref={inputRef}
               value={state.typed}
               onKeyDown={handleKey}
+              onCompositionEnd={handleCompositionEnd}
               onChange={() => undefined}
+              readOnly
               className="w-full rounded-md border bg-card px-3 py-2 font-mono text-lg tracking-widest"
               placeholder="在此输入五笔码..."
               autoFocus

@@ -24,7 +24,7 @@ export function Sidebar() {
         </div>
         <div>
           <div className="text-sm font-semibold leading-none">WubiTypeMaster</div>
-          <div className="text-[10px] text-muted-foreground">v0.2.0</div>
+          <div className="text-[10px] text-muted-foreground">v0.6.0</div>
         </div>
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-3">

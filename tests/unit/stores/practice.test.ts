@@ -64,11 +64,66 @@ describe('practice store', () => {
     expect(usePractice.getState().position).toBe(1);
   });
 
-  it('commit punctuation is ignored', () => {
-    usePractice.getState().start('中', 't1');
-    const err = usePractice.getState().commit('，', 'k');
+  it('commit punctuation is a normal char (no longer silently dropped)', () => {
+    usePractice.getState().start('，', 't1');
+    const err = usePractice.getState().commit('，', '');
+    expect(err).toBeNull();
+    expect(usePractice.getState().position).toBe(1);
+    expect(usePractice.getState().typedText).toBe('，');
+  });
+
+  it('commit whitespace is ignored', () => {
+    usePractice.getState().start('中国', 't1');
+    const err = usePractice.getState().commit(' ', '');
     expect(err).toBeNull();
     expect(usePractice.getState().position).toBe(0);
+  });
+
+  it('commitChars splits multi-char IME commit and processes each char', () => {
+    usePractice.getState().start('中国', 't1');
+    const errs = usePractice.getState().commitChars('中国', {
+      expectedCode: () => 'k',
+      typedCode: () => null,
+    });
+    expect(errs).toEqual([]);
+    const s = usePractice.getState();
+    expect(s.position).toBe(2);
+    expect(s.typedText).toBe('中国');
+    expect(s.status).toBe('completed');
+  });
+
+  it('commitChars records errors per mismatched char', () => {
+    usePractice.getState().start('中国', 't1');
+    const errs = usePractice.getState().commitChars('我们', {
+      expectedCode: () => 'k',
+      typedCode: () => null,
+    });
+    expect(errs).toHaveLength(2);
+    expect(errs[0]?.expected).toBe('中');
+    expect(errs[0]?.typed).toBe('我');
+    expect(errs[1]?.expected).toBe('国');
+    expect(errs[1]?.typed).toBe('们');
+    expect(usePractice.getState().position).toBe(2);
+  });
+
+  it('commitChars with empty string is no-op', () => {
+    usePractice.getState().start('中国', 't1');
+    const errs = usePractice.getState().commitChars('', {
+      expectedCode: () => '',
+      typedCode: () => null,
+    });
+    expect(errs).toEqual([]);
+    expect(usePractice.getState().position).toBe(0);
+  });
+
+  it('commitChars stops at end of target', () => {
+    usePractice.getState().start('中', 't1');
+    const errs = usePractice.getState().commitChars('中国', {
+      expectedCode: () => '',
+      typedCode: () => null,
+    });
+    expect(errs).toEqual([]);
+    expect(usePractice.getState().position).toBe(1);
   });
 
   it('undo moves back one position', () => {

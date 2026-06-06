@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   extractCommitText,
   isFinalCommit,
-  getLastChar,
+  splitCommitText,
   handleCommit,
   buildCharError,
 } from '@/lib/ime/input-handler';
@@ -37,23 +37,28 @@ describe('isFinalCommit', () => {
   });
 });
 
-describe('getLastChar', () => {
-  it('returns the only char for single-char string', () => {
-    expect(getLastChar('中')).toBe('中');
+describe('splitCommitText', () => {
+  it('returns single char for single-char input', () => {
+    expect(splitCommitText('中')).toEqual(['中']);
   });
 
-  it('returns the last char of a multi-char string', () => {
-    expect(getLastChar('中国')).toBe('国');
-    expect(getLastChar('hello')).toBe('o');
+  it('splits multi-char IME commit into individual chars', () => {
+    expect(splitCommitText('我们')).toEqual(['我', '们']);
+    expect(splitCommitText('中国')).toEqual(['中', '国']);
   });
 
-  it('returns empty for empty string', () => {
-    expect(getLastChar('')).toBe('');
+  it('keeps punctuation as commit units (caller decides what to do)', () => {
+    expect(splitCommitText('中，')).toEqual(['中', '，']);
   });
 
-  it('handles trailing punctuation', () => {
-    // 中文标点"。" 也是字符
-    expect(getLastChar('中。')).toBe('。');
+  it('filters whitespace (space/newline/tab/CR)', () => {
+    expect(splitCommitText('中 国')).toEqual(['中', '国']);
+    expect(splitCommitText('中\n国\t，')).toEqual(['中', '国', '，']);
+  });
+
+  it('returns empty array for empty/whitespace-only input', () => {
+    expect(splitCommitText('')).toEqual([]);
+    expect(splitCommitText('   \n\t')).toEqual([]);
   });
 });
 
@@ -68,20 +73,21 @@ describe('handleCommit', () => {
     });
   });
 
-  it('returns commit event with last char of multi-char input', () => {
-    // 中文输入法偶尔会一次性提交"我们"两个字，handleCommit 只取最后一个
-    const result = handleCommit('我们', '们', 0, 1000);
+  it('passes through a single char unchanged (no longer drops the rest)', () => {
+    // store 层负责拆分；handleCommit 只处理单字
+    const result = handleCommit('们', '们', 1, 1000);
     expect(result?.typed).toBe('们');
     expect(result?.expected).toBe('们');
   });
 
-  it('returns null for whitespace-only input', () => {
-    expect(handleCommit(' ', '中', 0)).toBeNull();
+  it('keeps punctuation as a valid commit', () => {
+    const result = handleCommit('，', '，', 0, 1000);
+    expect(result?.typed).toBe('，');
   });
 
-  it('returns null for Chinese punctuation input', () => {
-    expect(handleCommit('，', '中', 0)).toBeNull();
-    expect(handleCommit('。', '中', 0)).toBeNull();
+  it('returns null for whitespace-only input', () => {
+    expect(handleCommit(' ', '中', 0)).toBeNull();
+    expect(handleCommit('\n', '中', 0)).toBeNull();
   });
 
   it('uses Date.now() when timestamp not provided', () => {

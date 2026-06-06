@@ -39,11 +39,16 @@ export interface ThemeProviderProps {
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const theme = useSettings((s) => s.settings.theme);
   const accentColor = useSettings((s) => s.settings.accentColor);
+  const [resolvedDark, setResolvedDark] = React.useState<boolean>(() => {
+    if (typeof document === 'undefined') return false;
+    return document.documentElement.classList.contains('dark');
+  });
 
   React.useEffect(() => {
     const root = document.documentElement;
     const apply = (isDark: boolean) => {
       root.classList.toggle('dark', isDark);
+      setResolvedDark(isDark);
     };
     if (theme === 'system') {
       const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -59,12 +64,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   React.useEffect(() => {
     const { h, s } = hexToHsl(accentColor);
+    const l = resolvedDark ? 60 : 53;
     const root = document.documentElement;
-    const isDark = root.classList.contains('dark');
-    const l = isDark ? 60 : 53;
     root.style.setProperty('--primary', `${h} ${s}% ${l}%`);
     root.style.setProperty('--ring', `${h} ${s}% ${l}%`);
-  }, [accentColor]);
+  }, [accentColor, resolvedDark]);
 
   return <>{children}</>;
 }

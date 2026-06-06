@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-06-06
+
+### Fixed
+- **CRITICAL — 文章跟打编码码表为空** (`PRACTICE_LOOKUP` 一直是空数组)
+  - 新建 `src/lib/practice/lookup-bridge.ts` (`createLookupFromJson` + 补 `codeLength` 字段) 取代硬编码空数组
+  - Article 改用 `getCharCode` / `getWordSuggestions`，"编码: " readout 现在真正显示 Wubi 码
+- **CRITICAL — 多字 IME 提交丢字 (getLastChar bug)**
+  - `input-handler.ts` 删 `getLastChar`，新增 `splitCommitText(text)` 按字拆开
+  - `practice.ts` 新增 `commitChars(text, lookup)`，IME 一次提交"今天"正确前进 2 步
+  - Article 标点、空格、换行都正确处理
+- **CRITICAL — Pixi 严格模式双重 init (用户报告"上下两个黑色区域")**
+  - `PixiInvaders` + `PixiBubbles` 加 `cancelled` 标志 + 条件 destroy，React 18 严格模式不再双 canvas 堆叠
+- **HIGH — 三游戏 IME 输入不识别**
+  - 新建 `src/lib/ime/key-utils.ts` 的 `codeToLetter(e.code)` —— Windows IME 激活时 `e.key="Process"` 但 `e.code` 保留物理按键 (KeyA-KeyZ)
+  - WordInvaders / Bubble / KeyDrill 全部改用 `e.code` + `onCompositionEnd` 清缓冲 + `readOnly`
+- **HIGH — ThemeProvider 切深色后强调色 lightness 不更新**
+  - 引入 `resolvedDark` state 跨 effect 共享，加 `accentColor` 变化时重新计算 HSL lightness
+- **HIGH — KeyDrill weakKeys 显示脱节**
+  - 改用本地 state 一次性 `setWeakKeys(picked)`，移除错误的 `usePractice` 引用
+- **HIGH — Article 准确率/WPM running 时永远 0**
+  - 拆出 `liveWpm`/`liveAccuracy` memo，按 `(position, elapsed, errors.length)` 实时重算
+- **MEDIUM — Article 编码按键高亮只显示首键**
+  - `pressedKeys` 改成 `activeEntry.code.slice(0, prefix.length).split('')`，多键都显示
+- **MEDIUM — Stats `errorDistribution` 按分钟错误合并**
+  - 改成按 session id 一一对应，相同 minute 的多 session 不会塌成一个数据点
+- **MEDIUM — 三游戏 input 元素漏 readOnly**
+  - WordInvaders / Bubble 都加 `readOnly`，IME 与 controlled input 不再打架
+- **LOW — Sidebar 显示 v0.2.0**
+  - 改为 v0.6.0
+- **新增 / 更新测试**
+  - `practice.test.ts` +5 (commitChars)
+  - `ime-input-handler.test.ts` 删 getLastChar 测试，加 splitCommitText 测试
+  - 新建 `ime-key-utils.test.ts` (5 测试)
+  - `article.web.spec.ts` +2 E2E 回归 (多字 commit / 编码 readout)
+  - `word-invaders.web.spec.ts` +1 E2E 回归 (Pixi canvas 数量)
+
+### Test Results
+- Unit: 210 passing
+- E2E (web): 14 passing (1 Electron timeout 是环境问题，unrelated)
+- Typecheck + lint: 0 errors / 0 warnings
+
 ## [0.6.0] - 2026-06-06
 
 ### Added

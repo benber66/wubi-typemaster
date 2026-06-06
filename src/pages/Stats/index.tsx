@@ -93,13 +93,15 @@ export function StatsPage() {
   );
 
   const errorDistribution = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const s of sessions) {
-      const key = formatTimestamp(s.startedAt);
-      const errors = Math.max(0, s.totalChars - s.correctChars);
-      map.set(key, (map.get(key) ?? 0) + errors);
-    }
-    return Array.from(map.entries()).map(([time, errors]) => ({ time, errors }));
+    // 按场次 id 一一对应，不再按时间分组合并
+    return sessions
+      .slice()
+      .reverse()
+      .map((s) => ({
+        id: s.id,
+        time: formatTimestamp(s.startedAt),
+        errors: Math.max(0, s.totalChars - s.correctChars),
+      }));
   }, [sessions]);
 
   const handleDelete = async (id: number): Promise<void> => {

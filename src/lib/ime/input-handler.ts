@@ -44,20 +44,23 @@ export function isFinalCommit(event: {
 }
 
 /**
- * 从文本末尾获取最后一个完整字。
- * 处理 composition 提交后可能有未消化的 punctuation。
+ * 把 IME compositionend 提交的一段文本拆成"逐字"序列，供 store 顺序 commit。
+ * 保留所有汉字、ASCII 字母、标点；纯空白（半角空格、换行）会被剔除。
+ *
+ * 五笔一次性提交 "我们" 时应拆成 ["我", "们"] 两次 commit，而不是只取最后一个。
  */
-export function getLastChar(text: string): string {
-  if (text.length === 0) return '';
-  // 跳过末尾标点（如 "中。" 的 "。"）
-  const lastCodePoint = text.codePointAt(text.length - 1);
-  if (lastCodePoint === undefined) return '';
-  return String.fromCodePoint(lastCodePoint);
+export function splitCommitText(text: string): string[] {
+  const out: string[] = [];
+  for (const ch of text) {
+    if (ch === ' ' || ch === '\n' || ch === '\t' || ch === '\r') continue;
+    out.push(ch);
+  }
+  return out;
 }
 
 /**
- * 处理一次完整输入事件，比对目标字，生成 KeystrokeCommitEvent 或 CharError。
- * 返回 null 表示"输入了标点等非目标字符"（不计入错误）。
+ * 处理一次完整输入事件，比对目标字，生成 KeystrokeCommitEvent。
+ * 该函数对单字调用；多字 IME 提交应先用 splitCommitText 拆开再循环调用。
  */
 export function handleCommit(
   typed: string,
@@ -65,12 +68,10 @@ export function handleCommit(
   position: number,
   timestamp: number = Date.now(),
 ): KeystrokeCommitEvent | null {
-  const target = getLastChar(typed);
-  if (target === '' || target === ' ' || target === '，' || target === '。') {
-    // 标点不参与比对（在文章跟打中通常被跳过）
+  if (typed === '' || typed === ' ' || typed === '\n' || typed === '\t') {
     return null;
   }
-  return { typed: target, expected, position, timestamp };
+  return { typed, expected, position, timestamp };
 }
 
 /**

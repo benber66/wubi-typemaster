@@ -29,8 +29,16 @@ export function PixiBubbles({ width, height, bubbles, typed }: PixiBubblesProps)
     if (!containerRef.current) return;
     const app = new Application();
     const cache = cacheRef.current;
+    let cancelled = false;
     void app.init({ width, height, background: BG_COLOR, antialias: true }).then(() => {
-      if (!containerRef.current) return;
+      if (cancelled) {
+        app.destroy(true, { children: true });
+        return;
+      }
+      if (!containerRef.current) {
+        app.destroy(true, { children: true });
+        return;
+      }
       containerRef.current.appendChild(app.canvas);
       appRef.current = app;
       const stage = new Container();
@@ -38,10 +46,15 @@ export function PixiBubbles({ width, height, bubbles, typed }: PixiBubblesProps)
       stageRef.current = stage;
     });
     return () => {
-      appRef.current?.destroy(true, { children: true });
-      appRef.current = null;
-      stageRef.current = null;
-      cache.clear();
+      cancelled = true;
+      if (appRef.current === app) {
+        app.destroy(true, { children: true });
+        appRef.current = null;
+        stageRef.current = null;
+        cache.clear();
+      } else {
+        app.destroy(true, { children: true });
+      }
     };
   }, [width, height]);
 

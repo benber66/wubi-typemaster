@@ -2,33 +2,20 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { VirtualKeyboard } from '@/components/VirtualKeyboard';
-import { CodeHint, buildWordSuggestions, getCodeForChar } from '@/components/CodeHint';
+import { CodeHint } from '@/components/CodeHint';
 import { usePractice } from '@/stores/practice';
 import { useSettings } from '@/stores/settings';
 import { SAMPLE_TEXTS, getRandomSampleText } from '@/lib/practice/sample-texts';
 import { isFinalCommit, extractCommitText } from '@/lib/ime/input-handler';
+import { getCharCode, getWordSuggestions } from '@/lib/practice/lookup-bridge';
 import { findKeyByChar } from '@/components/VirtualKeyboard/layout';
-import type { WubiChar, WubiWord } from '@/lib/wubi/lookup';
-
-const PRACTICE_LOOKUP: { chars: WubiChar[]; words: WubiWord[] } = {
-  chars: [],
-  words: [],
-};
-
-function loadLookup() {
-  if (PRACTICE_LOOKUP.chars.length > 0) return PRACTICE_LOOKUP;
-  // 静态导入 JSON 会被 Vite bundle，这里使用 fetch + 后台 seed 简化
-  // 实际接入主进程 IPC 后用 createLookup
-  return PRACTICE_LOOKUP;
-}
 
 function findWubiEntriesForChar(
   char: string | null,
-): { code: string | null; words: WubiWord[] } {
-  const lookup = loadLookup();
+): { code: string | null; words: ReturnType<typeof getWordSuggestions> } {
   return {
-    code: getCodeForChar(char, lookup.chars),
-    words: buildWordSuggestions(char, lookup.words),
+    code: getCharCode(char),
+    words: getWordSuggestions(char),
   };
 }
 
@@ -87,7 +74,7 @@ export function ArticlePage() {
   const errors = usePractice((s) => s.errors);
   const textId = usePractice((s) => s.textId);
   const start = usePractice((s) => s.start);
-  const commit = usePractice((s) => s.commit);
+  const commitChars = usePractice((s) => s.commitChars);
   const reset = usePractice((s) => s.reset);
   const getResult = usePractice((s) => s.getResult);
 
@@ -99,6 +86,8 @@ export function ArticlePage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const errorInfo = errors[errors.length - 1];
   const startTimeRef = useRef<number | null>(null);
+  const isComposingRef = useRef<boolean>(false);
+  const [typedPrefix, setTypedPrefix] = useState<string>('');
 
   // Persist session to DB on completion
   const persistSession = useCallback(async () => {
@@ -164,12 +153,19 @@ export function ArticlePage() {
     }
   }, [status, targetText]);
 
+  // Reset typed prefix when active char changes
+  useEffect(() => {
+    setTypedPrefix('');
+    isComposingRef.current = false;
+  }, [position, status]);
+
   const activeChar = usePractice((s) => s.targetText[s.position] ?? null);
   const activeEntry = useMemo(() => findWubiEntriesForChar(activeChar), [activeChar]);
-  const pressedKeys = useMemo(
-    () => (activeEntry.code ? [activeEntry.code[0]?.toLowerCase() ?? ''] : []),
-    [activeEntry.code],
-  );
+  const pressedKeys = useMemo(() => {
+    if (!activeEntry.code) return [];
+    const prefix = typedPrefix.length > 0 ? typedPrefix : activeEntry.code[0] ?? '';
+    return activeEntry.code.slice(0, prefix.length).split('');
+  }, [activeEntry.code, typedPrefix]);
 
   const handleStart = () => {
     const t = SAMPLE_TEXTS.find((x) => x.id === selectedTextId) ?? getRandomSampleText();
@@ -187,23 +183,44 @@ export function ArticlePage() {
     if (!isFinalCommit(e.nativeEvent)) return;
     const text = extractCommitText(e.nativeEvent);
     if (!text) return;
-    const expectedCode = activeEntry.code ?? '';
-    const typedCode = (() => {
-      const wc = PRACTICE_LOOKUP.chars.find((c) => c.char === text);
-      return wc?.code ?? null;
-    })();
-    const result = commit(text, expectedCode, typedCode);
-    if (result !== null) {
-      setHintChar(activeChar);
+    const errs = commitChars(text, {
+      expectedCode: (ch) => getCharCode(ch) ?? '',
+      typedCode: (ch) => getCharCode(ch),
+    });
+    if (errs.length > 0) {
+      const last = errs[errs.length - 1]!;
+      setHintChar(last.expected);
     } else {
       setHintChar(null);
     }
-    if (inputRef.current) inputRef.current.value = '';
+    if (!isComposingRef.current && inputRef.current) {
+      inputRef.current.value = '';
+    }
+  };
+
+  const handleCompositionStart = () => {
+    isComposingRef.current = true;
+  };
+
+  const handleCompositionUpdate = (e: React.CompositionEvent<HTMLTextAreaElement>) => {
+    if (e.nativeEvent.data) {
+      isComposingRef.current = true;
+      setTypedPrefix(e.nativeEvent.data);
+    }
   };
 
   const result = status === 'completed' ? getResult() : null;
   const activeErrorChar = errorInfo?.expected ?? hintChar;
   const activeErrorCode = errorInfo?.expectedCode ?? activeEntry.code ?? null;
+
+  const liveWpm = useMemo(() => {
+    const minutes = Math.max(elapsed / 60_000, 1 / 60_000);
+    return Number((position / 5 / minutes).toFixed(2));
+  }, [position, elapsed]);
+  const liveAccuracy = useMemo(() => {
+    if (position === 0) return 1;
+    return Number(((position - errors.length) / position).toFixed(4));
+  }, [position, errors.length]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-8">
@@ -248,8 +265,8 @@ export function ArticlePage() {
         <Card>
           <CardContent className="space-y-4 py-6">
             <StatsBar
-              wpm={getResult().wpm}
-              accuracy={getResult().accuracy}
+              wpm={status === 'completed' ? getResult().wpm : liveWpm}
+              accuracy={status === 'completed' ? getResult().accuracy : liveAccuracy}
               position={position}
               total={targetText.length}
               duration={elapsed}
@@ -259,6 +276,8 @@ export function ArticlePage() {
             </div>
             <textarea
               ref={inputRef}
+              onCompositionStart={handleCompositionStart}
+              onCompositionUpdate={handleCompositionUpdate}
               onCompositionEnd={handleCompositionEnd}
               className="sr-only"
               autoFocus

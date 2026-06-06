@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PixiBubbles } from '@/components/PixiBubbles';
 import { useGameSession } from '@/hooks/use-game-session';
+import { codeToLetter } from '@/lib/ime/key-utils';
 import {
   type GameStatus,
   type Bubble,
@@ -122,19 +123,24 @@ export function BubblePage() {
     (e: React.KeyboardEvent<HTMLInputElement>): void => {
       if (state.status !== 'running') return;
       if (e.key === 'Backspace') {
+        e.preventDefault();
         setState((s) => ({ ...s, typed: s.typed.slice(0, -1) }));
         return;
       }
       if (e.key === 'Escape') {
+        e.preventDefault();
         setState((s) => ({ ...s, status: 'paused' }));
         return;
       }
-      if (e.key.length !== 1) return;
-      const ch = e.key.toLowerCase();
-      if (!/[a-z]/.test(ch)) return;
-      const next = state.typed + ch;
-      const match = findBubbleMatch(state.bubbles, next);
+      // e.code handles both non-IME a-z and IME-processed letters (where e.key="Process").
+      const letter = codeToLetter(e.code) ?? e.key.toLowerCase();
+      if (!letter || letter.length !== 1 || !/[a-z]/.test(letter)) return;
+      e.preventDefault();
+      const ch = letter;
       setState((s) => {
+        if (s.status !== 'running') return s;
+        const next = s.typed + ch;
+        const match = findBubbleMatch(s.bubbles, next);
         const totalAttempts = s.totalAttempts + 1;
         let correctAttempts = s.correctAttempts;
         let bubbles = s.bubbles;
@@ -153,8 +159,12 @@ export function BubblePage() {
         return { ...s, typed, bubbles, score, popped, totalAttempts, correctAttempts };
       });
     },
-    [state.status, state.typed, state.bubbles],
+    [state.status],
   );
+
+  const handleCompositionEnd = useCallback(() => {
+    setState((s) => (s.typed === '' ? s : { ...s, typed: '' }));
+  }, []);
 
   const accuracy = getAccuracy(state.correctAttempts, state.totalAttempts);
   const durationMs =
@@ -229,7 +239,9 @@ export function BubblePage() {
               ref={inputRef}
               value={state.typed}
               onKeyDown={handleKey}
+              onCompositionEnd={handleCompositionEnd}
               onChange={() => undefined}
+              readOnly
               className="w-full rounded-md border bg-card px-3 py-2 font-mono text-lg tracking-widest"
               placeholder="在此输入五笔码..."
               autoFocus

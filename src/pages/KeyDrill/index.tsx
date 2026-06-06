@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { usePractice } from '@/stores/practice';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameSession } from '@/hooks/use-game-session';
+import { codeToLetter } from '@/lib/ime/key-utils';
 import {
   INITIAL_DRILL_STATE,
   filterByKey,
@@ -47,22 +47,18 @@ export function KeyDrillPage() {
   const [targetKeyCount, setTargetKeyCount] = useState(3);
   const [queueSize, setQueueSize] = useState(20);
   const [state, setState] = useState<typeof INITIAL_DRILL_STATE>(INITIAL_DRILL_STATE);
+  const [weakKeys, setWeakKeys] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [activeChar] = usePractice((s) => [s.targetText[s.position] ?? null] as const);
-
-  const weakKeys = useMemo(() => {
-    const allKeys = 'abcdefghijklmnopqrstuvwxyz'.split('');
-    // 用 hash 假数据模拟"识别弱键"：随机选 3-5 个键作为目标
-    const seed = state.queue.length;
-    const picked: string[] = [];
-    for (let i = 0; i < targetKeyCount; i++) {
-      picked.push(allKeys[(seed + i * 7) % 26]!);
-    }
-    return picked;
-  }, [targetKeyCount, state.queue.length]);
 
   const handleStart = (): void => {
-    const candidates = filterByKey(SAMPLE_POOL, weakKeys);
+    // 真正生成弱键一次：临时 hash 假数据模拟
+    const allKeys = 'abcdefghijklmnopqrstuvwxyz'.split('');
+    const picked: string[] = [];
+    for (let i = 0; i < targetKeyCount; i++) {
+      picked.push(allKeys[(Date.now() + i * 7) % 26]!);
+    }
+    setWeakKeys(picked);
+    const candidates = filterByKey(SAMPLE_POOL, picked);
     const queue = pickDrillQueue(candidates, queueSize);
     setState({
       ...INITIAL_DRILL_STATE,
@@ -76,16 +72,19 @@ export function KeyDrillPage() {
     (e: React.KeyboardEvent<HTMLInputElement>): void => {
       if (state.status !== 'running') return;
       if (e.key === 'Backspace') {
+        e.preventDefault();
         setState((s) => ({ ...s, typed: s.typed.slice(0, -1) }));
         return;
       }
       if (e.key === 'Escape') {
+        e.preventDefault();
         setState((s) => ({ ...s, status: 'paused' }));
         return;
       }
-      if (e.key.length !== 1) return;
-      const ch = e.key.toLowerCase();
-      if (!/[a-z]/.test(ch)) return;
+      const letter = codeToLetter(e.code) ?? e.key.toLowerCase();
+      if (!letter || letter.length !== 1 || !/[a-z]/.test(letter)) return;
+      e.preventDefault();
+      const ch = letter;
       setState((s) => applyTyped(s, ch).next);
     },
     [state.status],
@@ -213,6 +212,7 @@ export function KeyDrillPage() {
               value={state.typed}
               onKeyDown={handleKey}
               onChange={() => undefined}
+              readOnly
               className="w-full rounded-md border bg-card px-3 py-2 font-mono text-lg tracking-widest"
               autoFocus
               aria-label="五笔码输入"
@@ -246,7 +246,7 @@ export function KeyDrillPage() {
               </div>
             )}
             <div className="text-[10px] text-muted-foreground">
-              {activeChar ? `active=${activeChar}` : ''}
+              当前目标：{currentItem?.text ?? '—'} · 码 {currentItem?.code ?? '—'}
             </div>
           </CardContent>
         </Card>
