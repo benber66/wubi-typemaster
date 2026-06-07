@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.7.0](https://github.com/benber66/wubi-typemaster/compare/v0.6.3...v0.7.0) (2026-06-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* None
+
+Defects fixed:
+- KeyDrill: now reads actual weak keys from key_stats DB via IPC instead of
+  pseudo-random selection; persists drill results back to key_stats
+- key_stats table: added IPC handlers (getAll/update/identifyWeak) and wired
+  through preload/renderer; dead table is now fully functional
+- undo(): now removes last error from errors array when reverting position
+- Article IME: synced isComposingRef reset and input clear in composition end
+  handler (was relying on delayed effect)
+- Escape key in Invaders/Bubble: now toggles pause/resume (was pause-only)
+- Sound settings: implemented Web Audio API tone generation — key click,
+  error buzz, hit chime, win fanfare, game over sequence — respects
+  soundEnabled/soundVolume settings (was ghost UI)
+- ErrorBoundary: wraps entire app to prevent blank screen on render error
+- Main process: replaced console.log/warn with electron-log
+
+Improvements:
+- AGENTS.md: comprehensive opencode project rules generated
+- .opencode.jsonc: added instructions field referencing docs/*
+- Stats page: replaced eslint-disable with proper useCallback pattern
+
+### Bug Fixes
+
+* inline SQL migrations into TypeScript — fix 'no such table' in production ([c548e07](https://github.com/benber66/wubi-typemaster/commit/c548e075c5984993d1aa5e5273d2f5acfebae880))
+* **Invaders,Bubble:** replace fixed 30-item pool with infinite random generation from core library ([0cc1d68](https://github.com/benber66/wubi-typemaster/commit/0cc1d68079489d498415ff31ec50bd326def8e51))
+* **PixiInvaders,PixiBubbles:** guard destroy before init — _cancelResize is not a function ([6564eb9](https://github.com/benber66/wubi-typemaster/commit/6564eb911f4f7c83074e18b5b6dffdb91517919e))
+* replace broken gitee-repo-mirror action with git push ([f889039](https://github.com/benber66/wubi-typemaster/commit/f889039ccb583e29c64417be6d0e2479289c5500))
+* resolve multiple severe defects — KeyDrill weak keys, sound ghost UI, IME input, undo error removal, ErrorBoundary ([8f1778b](https://github.com/benber66/wubi-typemaster/commit/8f1778b195c12b75c82aa65d86adf464e83e7efb))
+
 ### [0.6.3](https://github.com/benber66/wubi-typemaster/compare/v0.6.2...v0.6.3) (2026-06-07)
 
 
