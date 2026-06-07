@@ -102,13 +102,30 @@ jobs:
         run: find dist-artifacts -type f | head -20
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: dist-artifacts/**/*
-          generate_release_notes: true
-          draft: false
-          prerelease: ${{ contains(github.ref, 'rc') || contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          PRERELEASE="${{ contains(github.ref, 'rc') || contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}"
+          if [ "$PRERELEASE" = "true" ]; then PRERELEASE_FLAG="--prerelease"; else PRERELEASE_FLAG=""; fi
+
+          # Generate release notes
+          gh api repos/${{ github.repository }}/releases/generate-notes \
+            --field tag_name=${{ github.ref_name }} \
+            --jq .body > RELEASE_NOTES.md
+
+          # Find all artifact files
+          ARTIFACTS=()
+          while IFS= read -r -d '' f; do
+            ARTIFACTS+=("$f")
+          done < <(find dist-artifacts -type f -print0)
+
+          echo "=== Uploading ${#ARTIFACTS[@]} files ==="
+          gh release create ${{ github.ref_name }} \
+            "${ARTIFACTS[@]}" \
+            --title "${{ github.ref_name }}" \
+            --notes-file RELEASE_NOTES.md \
+            $PRERELEASE_FLAG
 
   mirror-to-gitee:
     name: Mirror to Gitee
