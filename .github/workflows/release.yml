@@ -99,7 +99,9 @@ jobs:
           path: dist-artifacts
 
       - name: List downloaded artifacts
-        run: find dist-artifacts -type f | head -20
+        run: |
+          echo "=== Artifact structure ==="
+          find dist-artifacts -type f | head -50
 
       - name: Create GitHub Release
         env:
@@ -119,12 +121,12 @@ jobs:
 
           echo "=== Release created. Now uploading assets... ==="
 
-          find dist-artifacts -type f -print0 | while IFS= read -r -d '' f; do
+          find dist-artifacts -type f \( -name '*.exe' -o -name '*.exe.blockmap' -o -name '*.nupkg' -o -name 'RELEASES' -o -name 'app-update.yml' -o -name 'latest.yml' \) -print0 | while IFS= read -r -d '' f; do
             echo "Uploading: $f"
             gh release upload "${{ github.ref_name }}" "$f" --clobber
           done
 
-          echo "=== Release created successfully ==="
+          echo "=== Release assets uploaded successfully ==="
 
   mirror-to-gitee:
     name: Mirror to Gitee
