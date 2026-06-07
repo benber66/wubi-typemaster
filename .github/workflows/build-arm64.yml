@@ -69,8 +69,10 @@ jobs:
           ls -la out/ 2>&1 | tee -a /tmp/build.log
           echo "=== electron-builder version ===" | tee -a /tmp/build.log
           npx electron-builder --version 2>&1 | tee -a /tmp/build.log
-          echo "=== Starting ARM64 packaging ===" | tee -a /tmp/build.log
-          npx electron-builder --linux --arm64 >> /tmp/build.log 2>&1
+          echo "=== Clearing electron-builder cache (avoid x86 fpm) ===" | tee -a /tmp/build.log
+          rm -rf ~/.cache/electron-builder 2>/dev/null
+          echo "=== Starting ARM64 packaging (AppImage only — deb requires x86 fpm) ===" | tee -a /tmp/build.log
+          npx electron-builder --linux --arm64 --config.linux.target=AppImage >> /tmp/build.log 2>&1
           EBUILD_OK=$?
           echo "=== BUILD_EXIT_CODE=$BUILD_OK EBUILDER_EXIT_CODE=$EBUILD_OK ===" | tee -a /tmp/build.log
           echo "BUILD_OK=$BUILD_OK" > /tmp/build_exit.txt
