@@ -106,21 +106,16 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          set -e
+          set -euo pipefail
           echo "=== Creating release for ${{ github.ref_name }} ==="
 
           PRERELEASE="${{ contains(github.ref, 'rc') || contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}"
           if [ "$PRERELEASE" = "true" ]; then PRERELEASE_FLAG="--prerelease"; else PRERELEASE_FLAG=""; fi
 
-          # Collect artifact files
-          ARTIFACT_FILES=()
-          while IFS= read -r -d '' f; do
-            ARTIFACT_FILES+=("$f")
-          done < <(find dist-artifacts -type f -print0)
-          echo "Found ${#ARTIFACT_FILES[@]} files to upload"
+          ls -laR dist-artifacts/ | head -40
 
           gh release create "${{ github.ref_name }}" \
-            "${ARTIFACT_FILES[@]}" \
+            "dist-artifacts/**/*" \
             --title "${{ github.ref_name }}" \
             --generate-notes \
             $PRERELEASE_FLAG
