@@ -1,11 +1,15 @@
 # Changelog
 
-All notable changes to WubiTypeMaster will be documented in this file.
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+### [0.6.3](https://github.com/benber66/wubi-typemaster/compare/v0.6.2...v0.6.3) (2026-06-07)
 
-## [Unreleased]
+
+### Bug Fixes
+
+* pnpm hoisted mode + asarUnpack for native deps ([882c7bf](https://github.com/benber66/wubi-typemaster/commit/882c7bf34407f08f257f9ff2fda4c4ca0b65987b))
+* remove npmRebuild:false — native module was compiled for Node.js v20 ABI 115 but Electron v31 needs ABI 125 ([c87a829](https://github.com/benber66/wubi-typemaster/commit/c87a829317427ef61e8d1ba417a9bee6587e9b89))
+* remove prettier-plugin-tailwindcss (orphaned dep), fix CI upload paths, add coverage excludes, format all files ([c49eaf6](https://github.com/benber66/wubi-typemaster/commit/c49eaf628d1257d65f43bef2f4064094e2d29b6b))
 
 ## [0.6.1] - 2026-06-06
 
