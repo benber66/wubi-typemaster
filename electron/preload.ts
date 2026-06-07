@@ -12,6 +12,11 @@ import type {
 
 const api: ElectronAPI = {
   ping: () => ipcRenderer.invoke('app:ping') as Promise<string>,
+  keyStats: {
+    getAll: () => ipcRenderer.invoke('keyStats:getAll'),
+    update: (stats) => ipcRenderer.invoke('keyStats:update', stats),
+    identifyWeak: (topN) => ipcRenderer.invoke('keyStats:identifyWeak', topN) as Promise<string[]>,
+  },
   db: {
     lookupChar: (char) => ipcRenderer.invoke('wubi:lookupChar', char) as Promise<WubiChar | null>,
     lookupCode: (code) => ipcRenderer.invoke('wubi:lookupCode', code) as Promise<WubiChar[]>,

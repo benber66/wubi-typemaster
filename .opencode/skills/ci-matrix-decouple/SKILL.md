@@ -24,7 +24,7 @@ jobs:
 
   build-ubuntu:
     runs-on: ubuntu-latest
-    continue-on-error: true  # 失败不阻塞
+    continue-on-error: true # 失败不阻塞
     steps:
       - run: pnpm build && pnpm build:linux
 ```
@@ -33,7 +33,7 @@ jobs:
 
 ```yaml
 github-release:
-  needs: [build-windows]  # 不依赖 build-ubuntu
+  needs: [build-windows] # 不依赖 build-ubuntu
 ```
 
 ### 3. Linux 构建依赖安装

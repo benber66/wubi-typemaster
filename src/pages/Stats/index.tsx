@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   LineChart,
   Line,
@@ -52,7 +52,7 @@ export function StatsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = async (): Promise<void> => {
+  const load = useCallback(async (): Promise<void> => {
     if (!api) {
       setError('IPC 不可用 · 请在 Electron 桌面应用中打开');
       setLoading(false);
@@ -72,12 +72,11 @@ export function StatsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [mode, api]);
 
   useEffect(() => {
     void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, api]);
+  }, [load]);
 
   const chartData = useMemo(
     () =>

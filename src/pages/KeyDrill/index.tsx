@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameSession } from '@/hooks/use-game-session';
+import { playKeyClick, playError, playWin } from '@/lib/audio';
 import { codeToLetter } from '@/lib/ime/key-utils';
 import { getPracticeLookup } from '@/lib/practice/lookup-bridge';
 import {
@@ -15,6 +16,7 @@ import {
   type DrillItem,
 } from '@/lib/game/key-drill';
 import type { WubiChar, WubiWord } from '@/lib/wubi/lookup';
+import type { KeyStatsMap } from '@/types/electron';
 
 export function KeyDrillPage() {
   const [targetKeyCount, setTargetKeyCount] = useState(3);
@@ -25,16 +27,59 @@ export function KeyDrillPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const statusRef = useRef(state.status);
   statusRef.current = state.status;
+  const keyStatsPersistedRef = useRef(false);
+  const prevCorrectRef = useRef(0);
+  const prevTotalRef = useRef(0);
 
-  const handleStart = (): void => {
+  useEffect(() => {
+    if (prevTotalRef.current > 0 && state.totalKeystrokes > prevTotalRef.current) {
+      if (state.correctKeystrokes > prevCorrectRef.current) {
+        playKeyClick();
+      } else {
+        playError();
+      }
+    }
+    prevCorrectRef.current = state.correctKeystrokes;
+    prevTotalRef.current = state.totalKeystrokes;
+  }, [state.totalKeystrokes, state.correctKeystrokes]);
+
+  useEffect(() => {
+    if (state.status === 'completed') playWin();
+  }, [state.status]);
+
+  // Persist key stats after drill completion
+  const persistKeyStats = useCallback(async (drillState: typeof state): Promise<void> => {
+    if (typeof window === 'undefined' || !window.api) return;
+    const stats = summarizeKeyStats(drillState);
+    if (stats.length === 0) return;
+    const map: KeyStatsMap = {};
+    for (const s of stats) {
+      map[s.key] = { totalPresses: s.totalPresses, errors: s.errors };
+    }
+    await window.api.keyStats.update(map);
+  }, []);
+
+  const handleStart = async (): Promise<void> => {
     const lookup = getPracticeLookup();
     const chars = lookup.randomCoreChars(30);
     const words = lookup.randomCoreWords(20, 2);
     const pool: Array<WubiChar | WubiWord> = [...chars, ...words];
-    const allKeys = 'abcdefghijklmnopqrstuvwxyz'.split('');
-    const picked: string[] = [];
-    for (let i = 0; i < targetKeyCount; i++) {
-      picked.push(allKeys[(Date.now() + i * 7) % 26]!);
+    let picked: string[];
+    if (typeof window !== 'undefined' && window.api) {
+      try {
+        picked = await window.api.keyStats.identifyWeak(targetKeyCount);
+      } catch {
+        picked = [];
+      }
+    } else {
+      picked = [];
+    }
+    if (picked.length === 0) {
+      const allKeys = 'abcdefghijklmnopqrstuvwxyz'.split('');
+      picked = [];
+      for (let i = 0; i < targetKeyCount; i++) {
+        picked.push(allKeys[(Date.now() + i * 7) % 26]!);
+      }
     }
     setWeakKeys(picked);
     const candidates = filterByKey(pool, picked);
@@ -84,6 +129,14 @@ export function KeyDrillPage() {
   const wpm = getWpm(state.correctKeystrokes, durationMs);
   const keyStats = summarizeKeyStats(state);
   const currentItem: DrillItem | null = state.queue[state.position] ?? null;
+
+  // Persist key stats when drill completes
+  useEffect(() => {
+    if (state.status === 'completed' && !keyStatsPersistedRef.current) {
+      keyStatsPersistedRef.current = true;
+      void persistKeyStats(state);
+    }
+  }, [state.status, state, persistKeyStats]);
 
   const { savedId, saveError } = useGameSession({
     enabled: state.status === 'completed',
@@ -137,7 +190,7 @@ export function KeyDrillPage() {
                 className="w-full"
               />
             </div>
-            <Button onClick={handleStart} size="lg" className="w-full">
+            <Button onClick={() => void handleStart()} size="lg" className="w-full">
               开始训练
             </Button>
           </CardContent>

@@ -5,6 +5,7 @@ import { PixiBubbles } from '@/components/PixiBubbles';
 import { useGameSession } from '@/hooks/use-game-session';
 import { codeToLetter } from '@/lib/ime/key-utils';
 import { getPracticeLookup } from '@/lib/practice/lookup-bridge';
+import { playHit, playError, playGameOver, playWin } from '@/lib/audio';
 import type { WubiChar, WubiWord } from '@/lib/wubi/lookup';
 import {
   type GameStatus,
@@ -84,10 +85,29 @@ export function BubblePage() {
   statusRef.current = state.status;
   const idRef = useRef(1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevPopped = useRef(0);
+  const prevEscaped = useRef(0);
+  const soundPlayedRef = useRef(false);
 
   useEffect(() => {
     if (state.status === 'running') inputRef.current?.focus();
   }, [state.status]);
+
+  useEffect(() => {
+    if (state.popped > prevPopped.current) playHit();
+    if (state.escaped > prevEscaped.current) playError();
+    prevPopped.current = state.popped;
+    prevEscaped.current = state.escaped;
+  }, [state.popped, state.escaped]);
+
+  useEffect(() => {
+    if (state.status === 'gameover' && !soundPlayedRef.current) {
+      soundPlayedRef.current = true;
+      if (state.won) playWin();
+      else playGameOver();
+    }
+    if (state.status === 'idle') soundPlayedRef.current = false;
+  }, [state.status, state.won]);
 
   useEffect(() => {
     if (countdown === null || countdown <= 0) return;
@@ -142,15 +162,18 @@ export function BubblePage() {
   };
 
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setState((s) => ({
+        ...s,
+        status: s.status === 'paused' ? 'running' : s.status === 'running' ? 'paused' : s.status,
+      }));
+      return;
+    }
     if (statusRef.current !== 'running') return;
     if (e.key === 'Backspace') {
       e.preventDefault();
       setState((s) => ({ ...s, typed: s.typed.slice(0, -1) }));
-      return;
-    }
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      setState((s) => ({ ...s, status: 'paused' }));
       return;
     }
     const letter = codeToLetter(e.code) ?? e.key.toLowerCase();

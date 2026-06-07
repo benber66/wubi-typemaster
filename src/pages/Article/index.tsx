@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { VirtualKeyboard } from '@/components/VirtualKeyboard';
 import { CodeHint } from '@/components/CodeHint';
+import { playKeyClick, playError } from '@/lib/audio';
 import { usePractice } from '@/stores/practice';
 import { useSettings } from '@/stores/settings';
 import { SAMPLE_TEXTS, getRandomSampleText } from '@/lib/practice/sample-texts';
@@ -213,10 +214,13 @@ export function ArticlePage() {
     if (errs.length > 0) {
       const last = errs[errs.length - 1]!;
       setHintChar(last.expected);
+      playError();
     } else {
       setHintChar(null);
+      playKeyClick();
     }
-    if (!isComposingRef.current && inputRef.current) {
+    isComposingRef.current = false;
+    if (inputRef.current) {
       inputRef.current.value = '';
     }
   };

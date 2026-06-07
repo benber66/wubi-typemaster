@@ -147,9 +147,15 @@ export const usePractice = create<PracticeStore>((set, get) => ({
   undo: () => {
     const s = get();
     if (s.position === 0) return;
+    const newPosition = s.position - 1;
+    const newErrors =
+      s.errors.length > 0 && s.errors[s.errors.length - 1]!.position === newPosition
+        ? s.errors.slice(0, -1)
+        : s.errors;
     set({
-      position: s.position - 1,
+      position: newPosition,
       typedText: s.typedText.slice(0, -1),
+      errors: newErrors,
     });
   },
   end: () => {

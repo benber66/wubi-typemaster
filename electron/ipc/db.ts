@@ -1,6 +1,7 @@
 import { app } from 'electron';
 import { join } from 'node:path';
 import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
+import log from 'electron-log';
 import { createDbClient, type DbConfig } from '../../src/db/client';
 
 let cached: ReturnType<typeof createDbClient> | null = null;
@@ -72,7 +73,7 @@ export async function seedFromBundled(): Promise<void> {
     for (const w of words) insertWord.run(w.word, w.code, w.weight, w.length, w.isCore ? 1 : 0);
   });
   tx();
-  console.log(`[db] Seeded ${chars.length} chars + ${words.length} words`);
+  log.info(`[db] Seeded ${chars.length} chars + ${words.length} words`);
 }
 
 export function listRawDataFiles(): string[] {

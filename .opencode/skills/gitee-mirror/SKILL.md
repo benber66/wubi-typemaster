@@ -1,6 +1,6 @@
 ---
 name: gitee-mirror
-description: "Use when Gitee mirror sync fails: yanglbme/gitee-repo-mirror action broken (repository not found), need to push code + tags to Gitee, or sync release assets to Gitee. Covers .github/workflows/release.yml, gitee-repo-mirror, git push --mirror."
+description: 'Use when Gitee mirror sync fails: yanglbme/gitee-repo-mirror action broken (repository not found), need to push code + tags to Gitee, or sync release assets to Gitee. Covers .github/workflows/release.yml, gitee-repo-mirror, git push --mirror.'
 ---
 
 # Gitee 镜像同步

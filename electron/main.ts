@@ -1,7 +1,9 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { join } from 'node:path';
+import log from 'electron-log';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { ensureSeeded, ensureUserDataDir, getDatabase } from './ipc/db';
+import { registerKeyStatsIpc } from './ipc/key-stats';
 import { registerWubiIpc } from './ipc/wubi';
 import { registerSessionIpc } from './ipc/sessions';
 import { registerSettingsIpc } from './ipc/settings';
@@ -46,6 +48,7 @@ function registerIpc(): void {
   ipcMain.handle('app:version', () => app.getVersion());
   ipcMain.handle('app:platform', () => process.platform);
 
+  registerKeyStatsIpc();
   registerWubiIpc();
   registerSessionIpc();
   registerSettingsIpc();
@@ -64,7 +67,7 @@ app.whenReady().then(async () => {
   try {
     await ensureSeeded();
   } catch (e) {
-    console.warn('[seed] Skipped:', (e as Error).message);
+    log.warn('[seed] Skipped:', (e as Error).message);
   }
 
   registerIpc();

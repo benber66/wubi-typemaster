@@ -1,6 +1,6 @@
 ---
 name: release-workflow
-description: "Use when GitHub Release workflow fails: softprops/action-gh-release errors, gh release create fails, win-unpacked files uploaded as assets, release tag needs recreation. Covers release.yml, electron-builder artifacts, gh CLI release creation."
+description: 'Use when GitHub Release workflow fails: softprops/action-gh-release errors, gh release create fails, win-unpacked files uploaded as assets, release tag needs recreation. Covers release.yml, electron-builder artifacts, gh CLI release creation.'
 ---
 
 # Release Workflow 排错
@@ -11,12 +11,12 @@ description: "Use when GitHub Release workflow fails: softprops/action-gh-releas
 
 ## 快速诊断
 
-| 症状 | 原因 | 修复 |
-|------|------|------|
-| `softprops/action-gh-release` Not Found | action bug 或 tag 冲突 | 改用 `gh release create` 两步法 |
-| 发布包含 `.pak` `.js` `.dll` 等文件 | `**/*` 通配符上传了整个 `win-unpacked` | 用 `find -name` 白名单过滤 |
-| `gh release create` exit code 1 | tag 已被删除但 GitHub 侧有缓存 | 等待 1 分钟后重建 tag |
-| 发布后 asset 只有 2 个 | 只上传了源码 zip | 需要上传 installer 文件 |
+| 症状                                    | 原因                                   | 修复                            |
+| --------------------------------------- | -------------------------------------- | ------------------------------- |
+| `softprops/action-gh-release` Not Found | action bug 或 tag 冲突                 | 改用 `gh release create` 两步法 |
+| 发布包含 `.pak` `.js` `.dll` 等文件     | `**/*` 通配符上传了整个 `win-unpacked` | 用 `find -name` 白名单过滤      |
+| `gh release create` exit code 1         | tag 已被删除但 GitHub 侧有缓存         | 等待 1 分钟后重建 tag           |
+| 发布后 asset 只有 2 个                  | 只上传了源码 zip                       | 需要上传 installer 文件         |
 
 ## 标准修复
 

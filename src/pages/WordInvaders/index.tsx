@@ -20,6 +20,7 @@ import {
   getAccuracy,
   getWpm,
 } from '@/lib/game/word-invaders';
+import { playError, playHit, playGameOver, playWin } from '@/lib/audio';
 import type { WubiChar, WubiWord } from '@/lib/wubi/lookup';
 
 type PoolEntry = WubiChar | WubiWord;
@@ -66,10 +67,29 @@ export function WordInvadersPage() {
   }, []);
   const idRef = useRef(1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevDestroyed = useRef(0);
+  const prevMissed = useRef(0);
+
+  useEffect(() => {
+    if (state.destroyed > prevDestroyed.current) playHit();
+    if (state.missed > prevMissed.current) playError();
+    prevDestroyed.current = state.destroyed;
+    prevMissed.current = state.missed;
+  }, [state.destroyed, state.missed]);
 
   useEffect(() => {
     if (state.status === 'running') inputRef.current?.focus();
   }, [state.status]);
+
+  const soundPlayedRef = useRef(false);
+  useEffect(() => {
+    if (state.status === 'gameover' && !soundPlayedRef.current) {
+      soundPlayedRef.current = true;
+      if (state.won) playWin();
+      else playGameOver();
+    }
+    if (state.status === 'idle') soundPlayedRef.current = false;
+  }, [state.status, state.won]);
 
   useEffect(() => {
     if (countdown === null || countdown <= 0) return;
@@ -130,15 +150,18 @@ export function WordInvadersPage() {
   };
 
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setState((s) => ({
+        ...s,
+        status: s.status === 'paused' ? 'running' : s.status === 'running' ? 'paused' : s.status,
+      }));
+      return;
+    }
     if (state.status !== 'running') return;
     if (e.key === 'Backspace') {
       e.preventDefault();
       setState((s) => ({ ...s, typed: s.typed.slice(0, -1) }));
-      return;
-    }
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      setState((s) => ({ ...s, status: 'paused' }));
       return;
     }
     const letter = codeToLetter(e.code) ?? e.key.toLowerCase();

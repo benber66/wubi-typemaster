@@ -49,11 +49,7 @@ export function PixiInvaders({
     const destroyOnce = () => {
       if (destroyed) return;
       destroyed = true;
-      try {
-        app.destroy(true, { children: true });
-      } catch {
-        /* ignore */
-      }
+      app.destroy(true, { children: true });
     };
     void app
       .init({ width, height, background: BG_COLOR, antialias: true })

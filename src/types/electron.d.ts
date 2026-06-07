@@ -2,6 +2,16 @@ import type { WubiChar, WubiWord } from '@/lib/wubi/lookup';
 
 export {};
 
+export interface KeyStatRecord {
+  keyChar: string;
+  totalPresses: number;
+  errors: number;
+  errorRate: number;
+  lastUpdated: number;
+}
+
+export type KeyStatsMap = Record<string, { totalPresses: number; errors: number }>;
+
 export interface PracticeSessionRecord {
   id: number;
   mode: 'article' | 'word-invaders' | 'bubble' | 'key-drill';
@@ -58,6 +68,11 @@ export interface UpdaterStatus {
 
 export interface ElectronAPI {
   ping: () => Promise<string>;
+  keyStats: {
+    getAll: () => Promise<KeyStatRecord[]>;
+    update: (stats: KeyStatsMap) => Promise<void>;
+    identifyWeak: (topN: number) => Promise<string[]>;
+  };
   db: {
     lookupChar: (char: string) => Promise<WubiChar | null>;
     lookupCode: (code: string) => Promise<WubiChar[]>;
