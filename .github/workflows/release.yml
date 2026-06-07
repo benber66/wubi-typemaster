@@ -112,13 +112,17 @@ jobs:
           PRERELEASE="${{ contains(github.ref, 'rc') || contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}"
           if [ "$PRERELEASE" = "true" ]; then PRERELEASE_FLAG="--prerelease"; else PRERELEASE_FLAG=""; fi
 
-          ls -laR dist-artifacts/ | head -40
-
           gh release create "${{ github.ref_name }}" \
-            "dist-artifacts/**/*" \
             --title "${{ github.ref_name }}" \
             --generate-notes \
             $PRERELEASE_FLAG
+
+          echo "=== Release created. Now uploading assets... ==="
+
+          find dist-artifacts -type f -print0 | while IFS= read -r -d '' f; do
+            echo "Uploading: $f"
+            gh release upload "${{ github.ref_name }}" "$f" --clobber
+          done
 
           echo "=== Release created successfully ==="
 
