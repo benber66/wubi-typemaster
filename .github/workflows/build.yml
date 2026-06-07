@@ -34,6 +34,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq dpkg-dev fakeroot libfuse2
+
       - name: Build & Package
         shell: bash
         run: |
