@@ -86,6 +86,8 @@ jobs:
     name: GitHub Release
     needs: [build-windows]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -96,9 +98,13 @@ jobs:
         with:
           path: dist-artifacts
 
+      - name: List downloaded artifacts
+        run: find dist-artifacts -type f | head -20
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           files: dist-artifacts/**/*
           generate_release_notes: true
           draft: false
