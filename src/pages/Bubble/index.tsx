@@ -15,7 +15,6 @@ import {
   findBubbleMatch,
   isBubbleExactMatch,
   moveBubbles,
-  pickPoolItem,
   noBubblesMatch,
   getAccuracy,
   getWpm,
@@ -54,13 +53,18 @@ const initialState: GameState = {
   won: false,
 };
 
-function spawnBubble(
-  pool: Array<WubiChar | WubiWord>,
-  config: BubbleConfig,
-  id: number,
-): Bubble | null {
-  const item = pickPoolItem(pool);
-  if (!item) return null;
+function randomBubbleItem(): WubiChar | WubiWord {
+  const lookup = getPracticeLookup();
+  if (Math.random() < 0.5) {
+    const chars = lookup.randomCoreChars(1);
+    return chars[0] ?? lookup.randomChars(1)[0]!;
+  }
+  const words = lookup.randomCoreWords(1, 2);
+  return words[0] ?? lookup.randomWords(1, 2)[0]!;
+}
+
+function spawnBubble(config: BubbleConfig, id: number): Bubble | null {
+  const item = randomBubbleItem();
   const x = 60 + Math.random() * (config.width - 120);
   const y = config.height - 20;
   return makeBubble(item, x, y, id);
@@ -71,12 +75,6 @@ export function BubblePage() {
     () => ({ ...DEFAULT_BUBBLE_CONFIG, width: 720, height: 480 }),
     [],
   );
-  const pool = useMemo(() => {
-    const lookup = getPracticeLookup();
-    const chars = lookup.randomCoreChars(10);
-    const words = lookup.randomCoreWords(20, 2);
-    return [...chars, ...words] as Array<WubiChar | WubiWord>;
-  }, []);
   const [state, setState] = useState<GameState>(initialState);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [missLimit] = useState(20);
@@ -133,7 +131,7 @@ export function BubblePage() {
         let spawnTimer = s.spawnTimer + deltaMs;
         const newBubbles = [...survivors];
         if (spawnTimer >= config.spawnIntervalMs && newBubbles.length < config.maxOnScreen) {
-          const b = spawnBubble(pool, config, idRef.current++);
+          const b = spawnBubble(config, idRef.current++);
           if (b) newBubbles.push(b);
           spawnTimer = 0;
         }
@@ -153,7 +151,7 @@ export function BubblePage() {
       });
     }, 100);
     return () => clearInterval(id);
-  }, [state.status, config, pool, missLimit]);
+  }, [state.status, config, missLimit]);
 
   const handleStart = (): void => {
     idRef.current = 1;

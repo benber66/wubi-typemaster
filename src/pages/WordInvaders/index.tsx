@@ -15,7 +15,6 @@ import {
   moveInvaders,
   findMatch,
   isExactMatch,
-  pickPoolItem,
   noInvadersMatch,
   getAccuracy,
   getWpm,
@@ -26,6 +25,16 @@ import type { WubiChar, WubiWord } from '@/lib/wubi/lookup';
 type PoolEntry = WubiChar | WubiWord;
 
 const DESTROY_TARGET = 100;
+
+function randomItem(): PoolEntry {
+  const lookup = getPracticeLookup();
+  if (Math.random() < 0.5) {
+    const chars = lookup.randomCoreChars(1);
+    return chars[0] ?? lookup.randomChars(1)[0]!;
+  }
+  const words = lookup.randomCoreWords(1, 2);
+  return words[0] ?? lookup.randomWords(1, 2)[0]!;
+}
 
 const initialState: GameState = {
   status: 'idle',
@@ -43,9 +52,8 @@ const initialState: GameState = {
   won: false,
 };
 
-function spawnInvader(pool: PoolEntry[], config: InvaderConfig, id: number): Invader | null {
-  const item = pickPoolItem(pool);
-  if (!item) return null;
+function spawnInvader(config: InvaderConfig, id: number): Invader | null {
+  const item = randomItem();
   const x = 40 + Math.random() * (config.width - 80);
   return makeInvader(item, x, 0, id);
 }
@@ -59,12 +67,6 @@ export function WordInvadersPage() {
   const [state, setState] = useState<GameState>(initialState);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [missLimit] = useState(20);
-  const pool = useMemo(() => {
-    const lookup = getPracticeLookup();
-    const chars = lookup.randomCoreChars(15);
-    const words = lookup.randomCoreWords(15, 2);
-    return [...chars, ...words] as PoolEntry[];
-  }, []);
   const idRef = useRef(1);
   const inputRef = useRef<HTMLInputElement>(null);
   const prevDestroyed = useRef(0);
@@ -120,7 +122,7 @@ export function WordInvadersPage() {
         let spawnTimer = s.spawnTimer + deltaMs;
         const newInvaders = [...survivors];
         if (spawnTimer >= config.spawnIntervalMs && newInvaders.length < config.maxOnScreen) {
-          const inv = spawnInvader(pool, config, idRef.current++);
+          const inv = spawnInvader(config, idRef.current++);
           if (inv) newInvaders.push(inv);
           spawnTimer = 0;
         }
@@ -141,7 +143,7 @@ export function WordInvadersPage() {
       });
     }, 100);
     return () => clearInterval(id);
-  }, [state.status, config, pool, missLimit]);
+  }, [state.status, config, missLimit]);
 
   const handleStart = () => {
     idRef.current = 1;
