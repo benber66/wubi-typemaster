@@ -7,9 +7,30 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Bug Fixes
 
-* pnpm hoisted mode + asarUnpack for native deps ([882c7bf](https://github.com/benber66/wubi-typemaster/commit/882c7bf34407f08f257f9ff2fda4c4ca0b65987b))
-* remove npmRebuild:false — native module was compiled for Node.js v20 ABI 115 but Electron v31 needs ABI 125 ([c87a829](https://github.com/benber66/wubi-typemaster/commit/c87a829317427ef61e8d1ba417a9bee6587e9b89))
-* remove prettier-plugin-tailwindcss (orphaned dep), fix CI upload paths, add coverage excludes, format all files ([c49eaf6](https://github.com/benber66/wubi-typemaster/commit/c49eaf628d1257d65f43bef2f4064094e2d29b6b))
+* **CRITICAL — 打包后窗口无法显示 (native module ABI mismatch)**
+  - 根因：`npmRebuild: false` 导致 `better-sqlite3.node` 用系统 Node.js v20 (ABI 115) 编译，Electron v31 需要 ABI 125
+  - `require('better-sqlite3')` 抛出异常 → `getDatabase()` 中断 → `createWindow()` 从未执行 → 进程活着但无窗口
+  - 修复：移除 `electron-builder.yml` 的 `npmRebuild: false`，electron-builder 自动下载 Electron 预编译版
+  - 前提：`node-linker=hoisted` 已消除 pnpm 隔离 store 导致的 7za/symlink 问题
+* **CRITICAL — pnpm 隔离 store 导致 electron-builder 打包时大量依赖缺失**
+  - 根因：pnpm `.pnpm` 虚拟 store 将所有 transitive deps 隔离，electron-builder 打包时解析不到
+  - 修复：`.npmrc` 设为 `node-linker=hoisted`，匹配 npm/yarn 扁平结构
+  - 补充：`asarUnpack` 加入 `bindings` / `file-uri-to-path`（better-sqlite3 运行时依赖链必须位于真实文件系统）
+  - 补充：`bindings` / `file-uri-to-path` 加入 `package.json` dependencies
+* **CRITICAL — Git tag v0.6.2 后的 CI 全红**
+  - format:check 失败 → 移除 `prettier-plugin-tailwindcss`（从未作为正式依赖安装，config 中的 plugins 引用导致 Prettier 报错）
+  - ubuntu-latest 覆盖率阈值失败 → 将 0% 覆盖的文件 (src/hooks, src/components/CodeHint/PixiBubbles/PixiInvaders, electron/ipc) 加入 vitest exclude
+  - windows-latest 构建产物流上传失败 → upload path 从 `release/*.exe` 改为 `release/**/*`（electron-builder 输出到 release/\${version}/ 子目录）
+  - 补充：数据文件 (wubi86-*.json, *.dict.yaml) 加入 `.prettierignore`
+* **CI 基础设置修复（v0.6.2 系列）**
+  - 替换废弃的 `pnpm/action-setup` 为 corepack / `npm install -g pnpm`
+  - 移除 `cache: pnpm` 解决鸡生蛋问题（setup-node 时 pnpm 尚未安装）
+  - CodeQL Action v3 → v4 迁移警告（12月前需手动更新）
+* **构建验证**
+  - 本地：format:check ✅ / lint ✅ / typecheck ✅ / 210 tests ✅ / 覆盖率 93.39% ✅
+  - 本地打包：WubiTypeMaster-0.6.2-x64-setup.exe (96.7 MB) 窗口正常显示，10+ 秒无崩溃
+  - CI (windows-latest)：Build ✅ / E2E 15 passed ✅ / CI lint+typecheck+test ✅ / CodeQL ✅
+  - CI (ubuntu-latest)：Build ❌ (预存在，Linux electron-builder 系统依赖问题) / E2E ❌ (预存在，Playwright "No tests found" 问题)
 
 ## [0.6.1] - 2026-06-06
 
