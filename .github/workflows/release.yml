@@ -82,6 +82,42 @@ jobs:
           path: release/**/*
           retention-days: 30
 
+  build-ubuntu-arm64:
+    name: Build & Release (ubuntu-24.04-arm)
+    runs-on: ubuntu-24.04-arm
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - run: npm install -g pnpm@9
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq dpkg-dev fakeroot libfuse2
+
+      - name: Build & Package (ARM64)
+        shell: bash
+        run: |
+          pnpm build
+          pnpm build:linux:arm64
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wubi-typemaster-ubuntu-arm64
+          path: release/**/*
+          retention-days: 30
+
   github-release:
     name: GitHub Release
     needs: [build-windows]
@@ -121,7 +157,7 @@ jobs:
 
           echo "=== Release created. Now uploading assets... ==="
 
-          find dist-artifacts -type f \( -name '*.exe' -o -name '*.exe.blockmap' -o -name '*.nupkg' -o -name 'RELEASES' -o -name 'app-update.yml' -o -name 'latest.yml' \) -print0 | while IFS= read -r -d '' f; do
+          find dist-artifacts -type f \( -name '*.exe' -o -name '*.exe.blockmap' -o -name '*.nupkg' -o -name 'RELEASES' -o -name 'app-update.yml' -o -name 'latest.yml' -o -name '*.AppImage' -o -name '*.AppImage.blockmap' -o -name '*.deb' -o -name '*.deb.blockmap' -o -name 'latest-linux*.yml' \) -print0 | while IFS= read -r -d '' f; do
             echo "Uploading: $f"
             gh release upload "${{ github.ref_name }}" "$f" --clobber
           done
