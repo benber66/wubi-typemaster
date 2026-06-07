@@ -237,6 +237,7 @@ jobs:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
         shell: bash
         run: |
+          set +e
           set -x
           if [ -z "$GITEE_TOKEN" ]; then
             echo "::error::GITEE_TOKEN secret is empty or not set"
@@ -245,7 +246,14 @@ jobs:
           echo "Token length: ${#GITEE_TOKEN}"
           ENCODED=$(python3 -c "import urllib.parse; import os; print(urllib.parse.quote(os.environ['GITEE_TOKEN'], safe=''))")
           echo "Encoded token length: ${#ENCODED}"
-          git remote add gitee "https://oauth2:${ENCODED}@gitee.com/benber66/wubi-typemaster.git"
+          GIT_URL="https://oauth2:${ENCODED}@gitee.com/benber66/wubi-typemaster.git"
+          git remote add gitee "$GIT_URL"
+          ADD_EXIT=$?
+          if [ $ADD_EXIT -ne 0 ]; then
+            echo "::error::git remote add failed (exit $ADD_EXIT) — check GITEE_TOKEN validity"
+            git remote remove gitee 2>/dev/null || true
+            exit $ADD_EXIT
+          fi
           git push gitee --force --mirror 2>&1
           GIT_PUSH_EXIT=$?
           git remote remove gitee 2>/dev/null || true
