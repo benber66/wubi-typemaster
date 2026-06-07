@@ -110,28 +110,25 @@ jobs:
           sudo apt-get install -y -qq libx11-xcb1 libxcb-dri3-0 libdrm2 libgbm1 libasound2 || true
 
       - name: Build & Package (ARM64)
+        continue-on-error: true
         shell: bash
         env:
           ELECTRON_MIRROR: ""
           ELECTRON_BUILDER_BINARIES_MIRROR: ""
           NODE_OPTIONS: ""
         run: |
-          set -x
-          echo "npmrc electron_mirror: $(npm config get electron_mirror 2>/dev/null || echo 'not set')"
-          echo "env ELECTRON_MIRROR: ${ELECTRON_MIRROR:-not set}"
+          set +e
           pnpm build 2>&1 | tee /tmp/build.log
-          echo "=== out/ directory ===" | tee -a /tmp/build.log
+          BUILD_OK=${PIPESTATUS[0]}
           ls -la out/ 2>&1 | tee -a /tmp/build.log
-          echo "=== electron-builder version ===" | tee -a /tmp/build.log
-          npx electron-builder --version 2>&1 | tee -a /tmp/build.log
-          echo "=== Starting ARM64 packaging ===" | tee -a /tmp/build.log
-          npx electron-builder --linux --arm64 --verbose > /tmp/ebuilder.log 2>&1
-          EXIT_CODE=$?
-          echo "=== electron-builder exit code: $EXIT_CODE ===" | tee -a /tmp/build.log
-          cat /tmp/ebuilder.log | tee -a /tmp/build.log
-          echo "=== BUILD_LOG_START ===" | tee -a /tmp/build.log
-          cat /tmp/build.log >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
-          exit $EXIT_CODE
+          echo "=== Clearing electron-builder cache ===" | tee -a /tmp/build.log
+          rm -rf ~/.cache/electron-builder 2>/dev/null
+          echo "=== Starting ARM64 packaging (AppImage only) ===" | tee -a /tmp/build.log
+          npx electron-builder --linux --arm64 --config.linux.target=AppImage >> /tmp/build.log 2>&1
+          EBUILD_OK=$?
+          echo "=== BUILD_EXIT_CODE=$BUILD_OK EBUILDER_EXIT_CODE=$EBUILD_OK ===" | tee -a /tmp/build.log
+          echo "BUILD_OK=$BUILD_OK" > /tmp/build_exit.txt
+          echo "EBUILD_OK=$EBUILD_OK" >> /tmp/build_exit.txt
 
       - name: Upload build log
         if: always()

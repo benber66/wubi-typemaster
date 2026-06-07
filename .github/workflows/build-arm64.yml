@@ -56,30 +56,30 @@ jobs:
           sudo apt-get install -y -qq libx11-xcb1 libxcb-dri3-0 libdrm2 libgbm1 libasound2 || true
 
       - name: Build & Package (ARM64)
+        continue-on-error: true
         shell: bash
         env:
           ELECTRON_MIRROR: ""
           ELECTRON_BUILDER_BINARIES_MIRROR: ""
           NODE_OPTIONS: ""
         run: |
-          set -x
-          echo "npmrc electron_mirror: $(npm config get electron_mirror 2>/dev/null || echo 'not set')"
-          echo "env ELECTRON_MIRROR: ${ELECTRON_MIRROR:-not set}"
+          set +e
           pnpm build 2>&1 | tee /tmp/build.log
-          echo "=== out/ directory ===" | tee -a /tmp/build.log
+          BUILD_OK=${PIPESTATUS[0]}
           ls -la out/ 2>&1 | tee -a /tmp/build.log
           echo "=== electron-builder version ===" | tee -a /tmp/build.log
           npx electron-builder --version 2>&1 | tee -a /tmp/build.log
-          echo "=== Starting ARM64 packaging ===" | tee -a /tmp/build.log
-          npx electron-builder --linux --arm64 --verbose > /tmp/ebuilder.log 2>&1
-          EXIT_CODE=$?
-          echo "=== electron-builder exit code: $EXIT_CODE ===" | tee -a /tmp/build.log
-          cat /tmp/ebuilder.log | tee -a /tmp/build.log
-          echo "=== BUILD_LOG_START ===" | tee -a /tmp/build.log
-          cat /tmp/build.log >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
-          exit $EXIT_CODE
+          echo "=== Clearing electron-builder cache (avoid x86 fpm) ===" | tee -a /tmp/build.log
+          rm -rf ~/.cache/electron-builder 2>/dev/null
+          echo "=== Starting ARM64 packaging (AppImage only — deb requires x86 fpm) ===" | tee -a /tmp/build.log
+          npx electron-builder --linux --arm64 --config.linux.target=AppImage >> /tmp/build.log 2>&1
+          EBUILD_OK=$?
+          echo "=== BUILD_EXIT_CODE=$BUILD_OK EBUILDER_EXIT_CODE=$EBUILD_OK ===" | tee -a /tmp/build.log
+          echo "BUILD_OK=$BUILD_OK" > /tmp/build_exit.txt
+          echo "EBUILD_OK=$EBUILD_OK" >> /tmp/build_exit.txt
 
       - name: List built artifacts
+        if: always()
         run: |
           echo "=== Built artifacts ==="
           find release -type f 2>/dev/null | sort || echo "No artifacts found"
@@ -92,29 +92,21 @@ jobs:
           path: /tmp/build.log
           retention-days: 90
 
-      - name: Report failure as issue
-        if: failure()
+      - name: Report errors
+        if: always()
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          {
-            echo "### ARM64 Build Failure ($TIMESTAMP)"
-            echo ""
-            echo "**Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            echo "**SHA**: ${{ github.sha }}"
-            echo ""
-            echo '```'
-            head -200 /tmp/build.log 2>/dev/null || echo "Log file not found"
-            echo '```'
-          } > /tmp/issue_body.md
-          gh label create ci-log --repo "${{ github.repository }}" 2>/dev/null || true
-          gh issue create \
-            --title "CI: ARM64 build failed ($TIMESTAMP)" \
-            --label "ci-log" \
-            --body-file /tmp/issue_body.md \
-            --repo "${{ github.repository }}" 2>&1 || echo "Issue creation failed"
+          LOG=/tmp/build.log
+          [ ! -f "$LOG" ] && { echo "::error::No build log found"; exit 0; }
+          grep -n -i "error\|Error\|ERROR\|fail\|Fail\|FAIL\|exception\|Exception\|Cannot\|cannot\|not found\|No such\|exit code\|NaN\|EBUILD\|rebuilt\|starting\|task=" "$LOG" 2>/dev/null | tail -50 | while IFS= read -r line; do
+            clean=$(echo "$line" | tr -d '\n\r\t' | head -c 600)
+            [ -n "$clean" ] && echo "::error::$clean"
+          done
+          echo "=== last 20 lines ==="
+          tail -20 "$LOG" 2>/dev/null | while IFS= read -r line; do
+            clean=$(echo "$line" | tr -d '\n\r\t' | head -c 600)
+            [ -n "$clean" ] && echo "::error::$clean"
+          done
 
       - name: Upload ARM64 deb
         if: always()
@@ -131,3 +123,18 @@ jobs:
           name: wubi-typemaster-arm64-appimage
           path: release/**/*.AppImage
           retention-days: 90
+
+      - name: Check build success
+        if: always()
+        shell: bash
+        run: |
+          if [ -f /tmp/build_exit.txt ]; then
+            source /tmp/build_exit.txt
+            [ "$BUILD_OK" = "0" ] && [ "$EBUILD_OK" = "0" ] && exit 0
+            echo "BUILD_OK=$BUILD_OK EBUILD_OK=$EBUILD_OK"
+            [ "$BUILD_OK" != "0" ] && echo "::error::Vite build failed (exit $BUILD_OK)"
+            [ "$EBUILD_OK" != "0" ] && echo "::error::electron-builder failed (exit $EBUILD_OK)"
+            exit 1
+          fi
+          echo "::error::Build exit file not found"
+          exit 1

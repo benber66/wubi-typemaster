@@ -4,7 +4,10 @@
   "private": true,
   "description": "跨平台五笔字型打字练习软件，复刻 TypeMaster 体验",
   "main": "./out/main/index.js",
-  "author": "benber66",
+  "author": {
+  "name": "benber66",
+  "email": "benber66@users.noreply.github.com"
+},
   "license": "MIT",
   "homepage": "https://github.com/benber66/wubi-typemaster",
   "repository": {
