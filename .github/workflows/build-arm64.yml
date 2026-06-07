@@ -56,16 +56,29 @@ jobs:
         shell: bash
         run: |
           set -x
-          pnpm build
-          ls -la out/
-          npx electron-builder --linux --arm64 --verbose
+          pnpm build 2>&1 | tee /tmp/build.log
+          ls -la out/ 2>&1 | tee -a /tmp/build.log
+          npx electron-builder --linux --arm64 --verbose > /tmp/ebuilder.log 2>&1
+          EXIT_CODE=$?
+          cat /tmp/ebuilder.log | tee -a /tmp/build.log
+          echo "=== BUILD_EXIT_CODE=$EXIT_CODE ===" | tee -a /tmp/build.log
+          exit $EXIT_CODE
 
       - name: List built artifacts
         run: |
           echo "=== Built artifacts ==="
-          find release -type f | sort
+          find release -type f 2>/dev/null | sort || echo "No artifacts found"
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: /tmp/build.log
+          retention-days: 90
 
       - name: Upload ARM64 deb
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: wubi-typemaster-arm64-deb
@@ -73,6 +86,7 @@ jobs:
           retention-days: 90
 
       - name: Upload ARM64 AppImage
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: wubi-typemaster-arm64-appimage
