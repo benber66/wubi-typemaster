@@ -63,8 +63,9 @@ jobs:
           ELECTRON_BUILDER_BINARIES_MIRROR: ""
           NODE_OPTIONS: ""
         run: |
+          set +e
           pnpm build 2>&1 | tee /tmp/build.log
-          BUILD_OK=$?
+          BUILD_OK=${PIPESTATUS[0]}
           ls -la out/ 2>&1 | tee -a /tmp/build.log
           echo "=== electron-builder version ===" | tee -a /tmp/build.log
           npx electron-builder --version 2>&1 | tee -a /tmp/build.log
@@ -95,18 +96,15 @@ jobs:
         run: |
           LOG=/tmp/build.log
           [ ! -f "$LOG" ] && { echo "::error::No build log found"; exit 0; }
-          echo "::group::Last 80 lines of build log"
-          tail -80 "$LOG" | while IFS= read -r line; do
-            clean=$(echo "$line" | tr -d '\n\r\t' | head -c 500)
-            [ -n "$clean" ] && echo "$clean"
-          done
-          echo "::endgroup::"
-          echo "::group::Error/extract"
-          grep -n -i "error\|Error\|ERROR\|fail\|Fail\|FAIL\|exception\|Exception\|Cannot\|cannot\|not found\|No such\|exit code\|EBUILD" "$LOG" 2>/dev/null | tail -40 | while IFS= read -r line; do
-            clean=$(echo "$line" | tr -d '\n\r\t' | head -c 500)
+          grep -n -i "error\|Error\|ERROR\|fail\|Fail\|FAIL\|exception\|Exception\|Cannot\|cannot\|not found\|No such\|exit code\|NaN\|EBUILD\|rebuilt\|starting\|task=" "$LOG" 2>/dev/null | tail -50 | while IFS= read -r line; do
+            clean=$(echo "$line" | tr -d '\n\r\t' | head -c 600)
             [ -n "$clean" ] && echo "::error::$clean"
           done
-          echo "::endgroup::"
+          echo "=== last 20 lines ==="
+          tail -20 "$LOG" 2>/dev/null | while IFS= read -r line; do
+            clean=$(echo "$line" | tr -d '\n\r\t' | head -c 600)
+            [ -n "$clean" ] && echo "::error::$clean"
+          done
 
       - name: Upload ARM64 deb
         if: always()
