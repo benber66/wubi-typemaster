@@ -40,8 +40,8 @@
   },
   "linux": {
     "target": [
-      { "target": "AppImage", "arch": ["x64"] },
-      { "target": "deb", "arch": ["x64"] }
+      "AppImage",
+      "deb"
     ],
     "category": "Education",
     "icon": "build/icon.png",

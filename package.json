@@ -42,7 +42,7 @@
     "serve:web": "node scripts/serve-static.mjs out/renderer-test 5173",
     "build:win": "electron-vite build && electron-builder --win",
     "build:linux": "electron-vite build && electron-builder --linux",
-    "build:linux:arm64": "electron-vite build && electron-builder --linux -c.linux.target='[{\"target\":\"AppImage\",\"arch\":[\"arm64\"]},{\"target\":\"deb\",\"arch\":[\"arm64\"]}]'",
+    "build:linux:arm64": "electron-vite build && electron-builder --linux --arm64",
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:all": "electron-vite build && electron-builder -mw",
     "build:wubi": "tsx scripts/build-wubi-table.ts",
