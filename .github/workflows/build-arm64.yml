@@ -23,26 +23,42 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
+      - name: Debug system info
+        run: |
+          echo "=== System Info ==="
+          uname -a
+          arch
+          node -v
+          npm -v
+          echo "=== CPU ==="
+          cat /proc/cpuinfo | grep "model name" | head -1 || true
+          cat /proc/cpuinfo | grep "CPU architecture" | head -1 || true
+          echo "=== Memory ==="
+          free -h
+          echo "=== Disk ==="
+          df -h / | tail -1
+
       - run: npm install -g pnpm@9
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install
+
+      - name: Rebuild native modules for Electron
+        run: |
+          npx @electron/rebuild -f -w better-sqlite3
 
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update -qq
-          # Core packaging tools
           sudo apt-get install -y -qq dpkg-dev fakeroot libfuse2
-          # Build tools for native modules (needed if prebuilt binaries unavailable)
-          sudo apt-get install -y -qq python3 make gcc g++ || echo "build-tools not found, continuing"
-          # Electron runtime libs
-          sudo apt-get install -y -qq libx11-xcb1 libxcb-dri3-0 libdrm2 libgbm1 libasound2 || echo "libs not found, continuing"
+          sudo apt-get install -y -qq libx11-xcb1 libxcb-dri3-0 libdrm2 libgbm1 libasound2 || true
 
       - name: Build & Package (ARM64)
         shell: bash
         run: |
+          set -x
           pnpm build
-          echo "--- Packaging for ARM64 ---"
-          pnpm build:linux:arm64 --verbose
+          ls -la out/
+          npx electron-builder --linux --arm64 --verbose
 
       - name: List built artifacts
         run: |
