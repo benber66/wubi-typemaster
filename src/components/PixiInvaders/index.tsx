@@ -46,16 +46,22 @@ export function PixiInvaders({
     const app = new Application();
     appRef.current = app;
     let destroyed = false;
+    let initDone = false;
     const destroyOnce = () => {
       if (destroyed) return;
       destroyed = true;
-      app.destroy(true, { children: true });
+      if (initDone) {
+        app.destroy(true, { children: true });
+      }
     };
     void app
       .init({ width, height, background: BG_COLOR, antialias: true })
       .then(() => {
+        initDone = true;
         if (!container.isConnected || destroyed) {
-          destroyOnce();
+          if (destroyed) {
+            app.destroy(true, { children: true });
+          }
           return;
         }
         container.appendChild(app.canvas);
