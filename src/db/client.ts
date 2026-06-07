@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BUILTIN_MIGRATIONS } from '@/db/migrations';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -68,7 +69,10 @@ export function applyMigrations(db: Database.Database, dir: string = MIGRATIONS_
   const appliedVersions = new Set(appliedRows.map((r) => r.version));
 
   // 3. 加载并应用未应用的迁移
-  const migrations = loadMigrations(dir);
+  let migrations = loadMigrations(dir);
+  if (migrations.length === 0) {
+    migrations = BUILTIN_MIGRATIONS;
+  }
   let applied = 0;
 
   for (const m of migrations) {
