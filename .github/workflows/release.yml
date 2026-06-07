@@ -111,12 +111,63 @@ jobs:
 
       - name: Build & Package (ARM64)
         shell: bash
+        env:
+          ELECTRON_MIRROR: ""
+          ELECTRON_BUILDER_BINARIES_MIRROR: ""
+          NODE_OPTIONS: ""
         run: |
           set -x
-          pnpm build
-          npx electron-builder --linux --arm64 --verbose
+          echo "npmrc electron_mirror: $(npm config get electron_mirror 2>/dev/null || echo 'not set')"
+          echo "env ELECTRON_MIRROR: ${ELECTRON_MIRROR:-not set}"
+          pnpm build 2>&1 | tee /tmp/build.log
+          echo "=== out/ directory ===" | tee -a /tmp/build.log
+          ls -la out/ 2>&1 | tee -a /tmp/build.log
+          echo "=== electron-builder version ===" | tee -a /tmp/build.log
+          npx electron-builder --version 2>&1 | tee -a /tmp/build.log
+          echo "=== Starting ARM64 packaging ===" | tee -a /tmp/build.log
+          npx electron-builder --linux --arm64 --verbose > /tmp/ebuilder.log 2>&1
+          EXIT_CODE=$?
+          echo "=== electron-builder exit code: $EXIT_CODE ===" | tee -a /tmp/build.log
+          cat /tmp/ebuilder.log | tee -a /tmp/build.log
+          echo "=== BUILD_LOG_START ===" | tee -a /tmp/build.log
+          cat /tmp/build.log >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          exit $EXIT_CODE
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-arm64
+          path: /tmp/build.log
+          retention-days: 90
+
+      - name: Report failure as issue
+        if: failure()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          HEAD_SHA="${{ github.sha }}"
+          RUN_ID="${{ github.run_id }}"
+          {
+            echo "### ARM64 Build Failure ($TIMESTAMP)"
+            echo ""
+            echo "**Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "**SHA**: $HEAD_SHA"
+            echo ""
+            echo '```'
+            head -200 /tmp/build.log 2>/dev/null || echo "Log file not found"
+            echo '```'
+          } > /tmp/issue_body.md
+          gh issue create \
+            --title "CI: ARM64 build failed ($TIMESTAMP)" \
+            --label "ci-log" \
+            --body-file /tmp/issue_body.md \
+            --repo "${{ github.repository }}" 2>&1 || echo "Issue creation failed"
 
       - name: Upload artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: wubi-typemaster-ubuntu-arm64
