@@ -106,26 +106,26 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
+          set -e
+          echo "=== Creating release for ${{ github.ref_name }} ==="
+
           PRERELEASE="${{ contains(github.ref, 'rc') || contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}"
           if [ "$PRERELEASE" = "true" ]; then PRERELEASE_FLAG="--prerelease"; else PRERELEASE_FLAG=""; fi
 
-          # Generate release notes
-          gh api repos/${{ github.repository }}/releases/generate-notes \
-            --field tag_name=${{ github.ref_name }} \
-            --jq .body > RELEASE_NOTES.md
-
-          # Find all artifact files
-          ARTIFACTS=()
+          # Collect artifact files
+          ARTIFACT_FILES=()
           while IFS= read -r -d '' f; do
-            ARTIFACTS+=("$f")
+            ARTIFACT_FILES+=("$f")
           done < <(find dist-artifacts -type f -print0)
+          echo "Found ${#ARTIFACT_FILES[@]} files to upload"
 
-          echo "=== Uploading ${#ARTIFACTS[@]} files ==="
-          gh release create ${{ github.ref_name }} \
-            "${ARTIFACTS[@]}" \
+          gh release create "${{ github.ref_name }}" \
+            "${ARTIFACT_FILES[@]}" \
             --title "${{ github.ref_name }}" \
-            --notes-file RELEASE_NOTES.md \
+            --generate-notes \
             $PRERELEASE_FLAG
+
+          echo "=== Release created successfully ==="
 
   mirror-to-gitee:
     name: Mirror to Gitee
