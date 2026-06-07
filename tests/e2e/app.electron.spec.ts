@@ -15,7 +15,9 @@ test.describe('Electron app', () => {
     });
     const window = await app.firstWindow();
     await window.waitForLoadState('domcontentloaded');
-    await expect(window.getByRole('heading', { name: '五笔打字练习' })).toBeVisible({ timeout: 10_000 });
+    await expect(window.getByRole('heading', { name: '五笔打字练习' })).toBeVisible({
+      timeout: 10_000,
+    });
     await app.close();
   });
 

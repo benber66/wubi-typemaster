@@ -53,7 +53,11 @@ const initialState: GameState = {
   won: false,
 };
 
-function spawnBubble(pool: Array<WubiChar | WubiWord>, config: BubbleConfig, id: number): Bubble | null {
+function spawnBubble(
+  pool: Array<WubiChar | WubiWord>,
+  config: BubbleConfig,
+  id: number,
+): Bubble | null {
   const item = pickPoolItem(pool);
   if (!item) return null;
   const x = 60 + Math.random() * (config.width - 120);
@@ -62,7 +66,10 @@ function spawnBubble(pool: Array<WubiChar | WubiWord>, config: BubbleConfig, id:
 }
 
 export function BubblePage() {
-  const config: BubbleConfig = useMemo(() => ({ ...DEFAULT_BUBBLE_CONFIG, width: 720, height: 480 }), []);
+  const config: BubbleConfig = useMemo(
+    () => ({ ...DEFAULT_BUBBLE_CONFIG, width: 720, height: 480 }),
+    [],
+  );
   const pool = useMemo(() => {
     const lookup = getPracticeLookup();
     const chars = lookup.randomCoreChars(10);
@@ -110,7 +117,7 @@ export function BubblePage() {
           if (b) newBubbles.push(b);
           spawnTimer = 0;
         }
-        const lost = escaped > 0 && (s.escaped + escaped) >= missLimit;
+        const lost = escaped > 0 && s.escaped + escaped >= missLimit;
         const won = s.popped >= DESTROY_TARGET;
         const gameover = lost || won;
         return {
@@ -171,7 +178,13 @@ export function BubblePage() {
       }
       const won = popped >= DESTROY_TARGET;
       return {
-        ...s, typed, bubbles, score, popped, totalAttempts, correctAttempts,
+        ...s,
+        typed,
+        bubbles,
+        score,
+        popped,
+        totalAttempts,
+        correctAttempts,
         status: won ? 'gameover' : s.status,
         endTime: won ? Date.now() : s.endTime,
         won: won || s.won,
@@ -206,7 +219,10 @@ export function BubblePage() {
     <div className="mx-auto max-w-5xl space-y-4 p-8">
       <header>
         <h1 className="text-3xl font-bold">Bubble</h1>
-        <p className="mt-1 text-muted-foreground">从下方升起的气泡，在逃到顶部前打出五笔码 · 漏 {missLimit} 个结束 · 击落 {DESTROY_TARGET} 个获胜</p>
+        <p className="mt-1 text-muted-foreground">
+          从下方升起的气泡，在逃到顶部前打出五笔码 · 漏 {missLimit} 个结束 · 击落 {DESTROY_TARGET}{' '}
+          个获胜
+        </p>
       </header>
 
       {state.status === 'idle' && (
@@ -218,9 +234,13 @@ export function BubblePage() {
             <ul className="list-disc pl-5 text-sm text-muted-foreground">
               <li>单字/词从底部上升，蓝色高亮前缀匹配</li>
               <li>完全匹配后气泡爆裂（+10/字）</li>
-              <li>漏 {missLimit} 个 → Game Over · 击落 {DESTROY_TARGET} 个获胜</li>
+              <li>
+                漏 {missLimit} 个 → Game Over · 击落 {DESTROY_TARGET} 个获胜
+              </li>
             </ul>
-            <Button onClick={handleStart} size="lg" className="w-full">开始游戏</Button>
+            <Button onClick={handleStart} size="lg" className="w-full">
+              开始游戏
+            </Button>
           </CardContent>
         </Card>
       )}
@@ -245,11 +265,15 @@ export function BubblePage() {
                   </div>
                   <div>
                     <div className="text-muted-foreground">击破</div>
-                    <div className="text-lg font-semibold">{state.popped} / {DESTROY_TARGET}</div>
+                    <div className="text-lg font-semibold">
+                      {state.popped} / {DESTROY_TARGET}
+                    </div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">逃走</div>
-                    <div className="text-lg font-semibold text-destructive">{state.escaped} / {missLimit}</div>
+                    <div className="text-lg font-semibold text-destructive">
+                      {state.escaped} / {missLimit}
+                    </div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">WPM</div>
@@ -275,9 +299,15 @@ export function BubblePage() {
                   aria-label="五笔码输入"
                 />
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={handleStart} size="sm">重新开始</Button>
+                  <Button variant="outline" onClick={handleStart} size="sm">
+                    重新开始
+                  </Button>
                   {state.status === 'paused' && (
-                    <Button variant="default" onClick={() => setState((s) => ({ ...s, status: 'running' }))} size="sm">
+                    <Button
+                      variant="default"
+                      onClick={() => setState((s) => ({ ...s, status: 'running' }))}
+                      size="sm"
+                    >
                       继续
                     </Button>
                   )}
@@ -319,7 +349,9 @@ export function BubblePage() {
             {saveError !== null && (
               <div className="text-xs text-destructive">保存失败：{saveError}</div>
             )}
-            <Button onClick={handleStart} size="lg" className="w-full">再来一局</Button>
+            <Button onClick={handleStart} size="lg" className="w-full">
+              再来一局
+            </Button>
           </CardContent>
         </Card>
       )}

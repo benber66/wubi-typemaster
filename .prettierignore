@@ -6,3 +6,8 @@ coverage
 pnpm-lock.yaml
 *.min.*
 CHANGELOG.md
+electron-builder.yml
+src/data/raw/wubi86_jidian.dict.yaml
+src/data/wubi86-chars.json
+src/data/wubi86-words.json
+src/data/wubi86-stats.json

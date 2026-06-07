@@ -1,9 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import {
-  createLookupFromJson,
-  type WubiChar,
-  type WubiWord,
-} from '../../../src/lib/wubi/lookup';
+import { createLookupFromJson, type WubiChar, type WubiWord } from '../../../src/lib/wubi/lookup';
 
 const CHARS: WubiChar[] = [
   { char: '中', code: 'k', weight: 5000, codeLength: 1, isCore: true },

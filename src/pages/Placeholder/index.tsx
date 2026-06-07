@@ -19,9 +19,7 @@ function Placeholder({ title, phase, desc }: PlaceholderProps) {
           <CardDescription>{desc}</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            该页面将在后续 Phase 实现。
-          </p>
+          <p className="text-sm text-muted-foreground">该页面将在后续 Phase 实现。</p>
         </CardContent>
       </Card>
     </div>

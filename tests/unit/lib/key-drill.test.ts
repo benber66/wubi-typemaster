@@ -31,7 +31,12 @@ const wordItem = (word: string, code: string, weight = 100, length = 2): WubiWor
   isCore: true,
 });
 
-const drillItem = (text: string, code: string, weight = 100, type: 'char' | 'word' = 'char'): DrillItem => ({
+const drillItem = (
+  text: string,
+  code: string,
+  weight = 100,
+  type: 'char' | 'word' = 'char',
+): DrillItem => ({
   text,
   code,
   weight,
@@ -86,11 +91,7 @@ describe('key-drill logic', () => {
 
   describe('pickDrillQueue', () => {
     it('returns top N by weight', () => {
-      const items = [
-        drillItem('a', 'aa', 10),
-        drillItem('b', 'bb', 100),
-        drillItem('c', 'cc', 50),
-      ];
+      const items = [drillItem('a', 'aa', 10), drillItem('b', 'bb', 100), drillItem('c', 'cc', 50)];
       const queue = pickDrillQueue(items, 2);
       expect(queue.map((i) => i.text)).toEqual(['b', 'c']);
     });

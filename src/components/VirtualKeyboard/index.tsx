@@ -34,9 +34,7 @@ function KeyboardKey({
             {r}
           </span>
         ))}
-        {wk.roots.length > 2 && (
-          <span className="text-[9px] leading-none opacity-50">…</span>
-        )}
+        {wk.roots.length > 2 && <span className="text-[9px] leading-none opacity-50">…</span>}
       </div>
     </div>
   );
@@ -56,11 +54,7 @@ export function VirtualKeyboard({
       aria-label="五笔 86 虚拟键盘"
     >
       {WUBI_86_LAYOUT.map((row, rowIdx) => (
-        <div
-          key={rowIdx}
-          className="flex gap-1.5"
-          style={{ paddingLeft: `${rowIdx * 1.25}rem` }}
-        >
+        <div key={rowIdx} className="flex gap-1.5" style={{ paddingLeft: `${rowIdx * 1.25}rem` }}>
           {row.map((wk) => (
             <KeyboardKey
               key={wk.key}

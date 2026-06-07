@@ -27,11 +27,6 @@
     },
     "types": ["node", "vitest/globals"]
   },
-  "include": [
-    "src/**/*",
-    "electron/**/*",
-    "tests/**/*",
-    ".storybook/**/*"
-  ],
+  "include": ["src/**/*", "electron/**/*", "tests/**/*", ".storybook/**/*"],
   "exclude": ["node_modules", "dist", "release", "coverage"]
 }

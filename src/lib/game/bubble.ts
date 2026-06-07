@@ -38,12 +38,7 @@ export function pickPoolItem(
   return pool[idx] ?? null;
 }
 
-export function makeBubble(
-  item: WubiChar | WubiWord,
-  x: number,
-  y: number,
-  id: number,
-): Bubble {
+export function makeBubble(item: WubiChar | WubiWord, x: number, y: number, id: number): Bubble {
   const isChar = 'char' in item;
   return {
     id,
@@ -101,5 +96,5 @@ export function getAccuracy(correct: number, total: number): number {
 export function getWpm(correctPops: number, durationMs: number): number {
   if (correctPops <= 0 || durationMs <= 0) return 0;
   const minutes = durationMs / 60_000;
-  return Number(((correctPops / 5) / minutes).toFixed(2));
+  return Number((correctPops / 5 / minutes).toFixed(2));
 }

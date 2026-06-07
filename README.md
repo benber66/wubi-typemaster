@@ -20,10 +20,10 @@
 
 前往 [Releases 页面](https://github.com/benber66/wubi-typemaster/releases) 下载对应平台安装包。
 
-| 平台 | 安装包 |
-|---|---|
-| Windows | `WubiTypeMaster-Setup-x.y.z.exe` |
-| Linux | `WubiTypeMaster-x.y.z.AppImage` / `.deb` |
+| 平台    | 安装包                                   |
+| ------- | ---------------------------------------- |
+| Windows | `WubiTypeMaster-Setup-x.y.z.exe`         |
+| Linux   | `WubiTypeMaster-x.y.z.AppImage` / `.deb` |
 
 国内用户可从 [Gitee Releases](https://gitee.com/benber66/wubi-typemaster/releases) 下载。
 
@@ -51,14 +51,14 @@ pnpm dev
 
 当前版本：**v0.1.1**（Phase 1 数据层完成）
 
-| Phase | 内容 | 状态 |
-|---|---|---|
-| 0 | 仓库骨架 + CI + 文档 | ✅ v0.0.2 |
-| 1 | 五笔码表 + 核心集标记 + SQLite + Lookup API | ✅ v0.1.1 |
-| 2 | 设置/主题/虚拟键盘 | ⏳ 进行中 |
-| 3 | 4 模式练习核心 | ⏳ |
-| 4 | 历史/统计 | ⏳ |
-| 5 | 打包 + 自动更新 | ⏳ |
+| Phase | 内容                                        | 状态      |
+| ----- | ------------------------------------------- | --------- |
+| 0     | 仓库骨架 + CI + 文档                        | ✅ v0.0.2 |
+| 1     | 五笔码表 + 核心集标记 + SQLite + Lookup API | ✅ v0.1.1 |
+| 2     | 设置/主题/虚拟键盘                          | ⏳ 进行中 |
+| 3     | 4 模式练习核心                              | ⏳        |
+| 4     | 历史/统计                                   | ⏳        |
+| 5     | 打包 + 自动更新                             | ⏳        |
 
 详细路线图：[docs/roadmap.md](./docs/roadmap.md)
 

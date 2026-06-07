@@ -1,15 +1,15 @@
 import type { CharError } from '@/lib/typing/metrics';
 
 export interface ImeCommitEvent {
-  text: string;          // 最终上屏文本
-  composing: boolean;    // 提交时是否还在 composition（通常 false）
+  text: string; // 最终上屏文本
+  composing: boolean; // 提交时是否还在 composition（通常 false）
   timestamp: number;
 }
 
 export interface KeystrokeCommitEvent {
-  typed: string;          // 用户在 compositionend 提交的字
-  expected: string;       // 当前目标字
-  position: number;       // 当前光标位置
+  typed: string; // 用户在 compositionend 提交的字
+  expected: string; // 当前目标字
+  position: number; // 当前光标位置
   timestamp: number;
 }
 
@@ -21,10 +21,7 @@ export type KeystrokeHandler = (event: KeystrokeCommitEvent) => void;
  * 中文 IME 流程：compositionstart → compositionupdate* → compositionend
  * 提交文本在 compositionend 的 event.data 中。
  */
-export function extractCommitText(event: {
-  data?: string;
-  type: string;
-}): string {
+export function extractCommitText(event: { data?: string; type: string }): string {
   if (event.type === 'compositionend' && typeof event.data === 'string') {
     return event.data;
   }
@@ -36,10 +33,7 @@ export function extractCommitText(event: {
  * - compositionend with non-empty data → 完整 commit
  * - compositionend with empty data → 用户按 ESC 取消
  */
-export function isFinalCommit(event: {
-  data?: string;
-  type: string;
-}): boolean {
+export function isFinalCommit(event: { data?: string; type: string }): boolean {
   return event.type === 'compositionend' && typeof event.data === 'string' && event.data.length > 0;
 }
 

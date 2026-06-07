@@ -13,9 +13,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
-  render: () => (
-    <Slider defaultValue={[50]} max={100} step={1} className="w-60" />
-  ),
+  render: () => <Slider defaultValue={[50]} max={100} step={1} className="w-60" />,
 };
 
 export const VolumeControl: Story = {
@@ -40,7 +38,5 @@ export const VolumeControl: Story = {
 };
 
 export const Range: Story = {
-  render: () => (
-    <Slider defaultValue={[20, 80]} max={100} step={1} className="w-60" />
-  ),
+  render: () => <Slider defaultValue={[20, 80]} max={100} step={1} className="w-60" />,
 };

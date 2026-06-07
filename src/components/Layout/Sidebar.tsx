@@ -1,5 +1,14 @@
 import { NavLink } from 'react-router-dom';
-import { Home, BarChart3, Settings as SettingsIcon, Keyboard, FileText, Gamepad2, CircleDot, Crosshair } from 'lucide-react';
+import {
+  Home,
+  BarChart3,
+  Settings as SettingsIcon,
+  Keyboard,
+  FileText,
+  Gamepad2,
+  CircleDot,
+  Crosshair,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { version } from '../../../package.json';
 
@@ -36,7 +45,9 @@ export function Sidebar() {
         </div>
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-3">
-        <div className="px-3 py-1 text-[10px] font-medium uppercase text-muted-foreground">导航</div>
+        <div className="px-3 py-1 text-[10px] font-medium uppercase text-muted-foreground">
+          导航
+        </div>
         {SITE_ITEMS.map((item) => (
           <NavLink
             key={item.to}
@@ -45,9 +56,7 @@ export function Sidebar() {
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-foreground hover:bg-accent',
+                isActive ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-accent',
               )
             }
           >
@@ -55,7 +64,9 @@ export function Sidebar() {
             <span>{item.label}</span>
           </NavLink>
         ))}
-        <div className="mt-2 px-3 py-1 text-[10px] font-medium uppercase text-muted-foreground">练习模式</div>
+        <div className="mt-2 px-3 py-1 text-[10px] font-medium uppercase text-muted-foreground">
+          练习模式
+        </div>
         {MODE_ITEMS.map((item) => (
           <NavLink
             key={item.to}
@@ -63,9 +74,7 @@ export function Sidebar() {
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-foreground hover:bg-accent',
+                isActive ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-accent',
               )
             }
           >
@@ -74,9 +83,7 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
-      <div className="border-t p-3 text-[10px] text-muted-foreground">
-        © 2026 benber66 · MIT
-      </div>
+      <div className="border-t p-3 text-[10px] text-muted-foreground">© 2026 benber66 · MIT</div>
     </aside>
   );
 }

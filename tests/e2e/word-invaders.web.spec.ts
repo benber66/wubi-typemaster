@@ -19,7 +19,9 @@ test.describe('WordInvaders page', () => {
     await expect(page.locator('text=WPM').first()).toBeVisible();
   });
 
-  test('only one Pixi canvas is rendered (regression: strict-mode double-init)', async ({ page }) => {
+  test('only one Pixi canvas is rendered (regression: strict-mode double-init)', async ({
+    page,
+  }) => {
     await page.goto('/');
     const card = page.locator('[class*="group"]').filter({ hasText: 'Word Invaders' }).first();
     await card.getByRole('button', { name: '开始' }).click();

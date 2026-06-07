@@ -120,8 +120,16 @@ describe('practice session persistence', () => {
   describe('listSessions', () => {
     beforeEach(() => {
       insertSession(db, baseSession({ startedAt: 1000, endedAt: 2000, textSource: 'a' }), []);
-      insertSession(db, baseSession({ mode: 'word-invaders', startedAt: 2000, endedAt: 3000, textSource: 'b' }), []);
-      insertSession(db, baseSession({ mode: 'article', startedAt: 3000, endedAt: 4000, textSource: 'c' }), []);
+      insertSession(
+        db,
+        baseSession({ mode: 'word-invaders', startedAt: 2000, endedAt: 3000, textSource: 'b' }),
+        [],
+      );
+      insertSession(
+        db,
+        baseSession({ mode: 'article', startedAt: 3000, endedAt: 4000, textSource: 'c' }),
+        [],
+      );
     });
 
     it('returns all sessions ordered by started_at DESC', () => {
@@ -146,15 +154,11 @@ describe('practice session persistence', () => {
 
   describe('getSessionErrors', () => {
     it('orders errors by position ASC', () => {
-      const id = insertSession(
-        db,
-        baseSession(),
-        [
-          { position: 5, expected: 'a', typed: 'b', expectedCode: 'c', typedCode: null },
-          { position: 1, expected: 'x', typed: 'y', expectedCode: 'z', typedCode: 'q' },
-          { position: 3, expected: 'm', typed: 'n', expectedCode: 'o', typedCode: null },
-        ],
-      );
+      const id = insertSession(db, baseSession(), [
+        { position: 5, expected: 'a', typed: 'b', expectedCode: 'c', typedCode: null },
+        { position: 1, expected: 'x', typed: 'y', expectedCode: 'z', typedCode: 'q' },
+        { position: 3, expected: 'm', typed: 'n', expectedCode: 'o', typedCode: null },
+      ]);
       const rows = getSessionErrors(db, id);
       expect(rows.map((r) => r.position)).toEqual([1, 3, 5]);
     });
@@ -167,11 +171,9 @@ describe('practice session persistence', () => {
 
   describe('deleteSession', () => {
     it('cascades to session_errors', () => {
-      const id = insertSession(
-        db,
-        baseSession(),
-        [{ position: 0, expected: 'a', typed: 'b', expectedCode: 'c', typedCode: null }],
-      );
+      const id = insertSession(db, baseSession(), [
+        { position: 0, expected: 'a', typed: 'b', expectedCode: 'c', typedCode: null },
+      ]);
       expect(deleteSession(db, id)).toBe(true);
       expect(getSession(db, id)).toBeNull();
       expect(getSessionErrors(db, id)).toEqual([]);
@@ -184,8 +186,16 @@ describe('practice session persistence', () => {
 
   describe('summarizeSessions', () => {
     it('aggregates across all sessions', () => {
-      insertSession(db, baseSession({ wpm: 50, accuracy: 0.9, durationMs: 1000, totalChars: 100 }), []);
-      insertSession(db, baseSession({ wpm: 70, accuracy: 1.0, durationMs: 2000, totalChars: 200 }), []);
+      insertSession(
+        db,
+        baseSession({ wpm: 50, accuracy: 0.9, durationMs: 1000, totalChars: 100 }),
+        [],
+      );
+      insertSession(
+        db,
+        baseSession({ wpm: 70, accuracy: 1.0, durationMs: 2000, totalChars: 200 }),
+        [],
+      );
       insertSession(
         db,
         baseSession({ wpm: 60, accuracy: 0.95, durationMs: 3000, totalChars: 300 }),
@@ -230,11 +240,9 @@ describe('practice session persistence', () => {
 
   describe('toCharErrors', () => {
     it('maps SessionErrorRow to CharError', () => {
-      const id = insertSession(
-        db,
-        baseSession(),
-        [{ position: 4, expected: '中', typed: '错', expectedCode: 'khk', typedCode: 'yqg' }],
-      );
+      const id = insertSession(db, baseSession(), [
+        { position: 4, expected: '中', typed: '错', expectedCode: 'khk', typedCode: 'yqg' },
+      ]);
       const rows = getSessionErrors(db, id);
       const errors = toCharErrors(rows);
       expect(errors[0]).toEqual({

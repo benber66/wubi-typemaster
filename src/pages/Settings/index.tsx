@@ -36,7 +36,10 @@ export function SettingsPage() {
           <CardContent className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="theme-select">外观</Label>
-              <Select value={settings.theme} onValueChange={(v) => setTheme(v as 'light' | 'dark' | 'system')}>
+              <Select
+                value={settings.theme}
+                onValueChange={(v) => setTheme(v as 'light' | 'dark' | 'system')}
+              >
                 <SelectTrigger id="theme-select">
                   <SelectValue />
                 </SelectTrigger>

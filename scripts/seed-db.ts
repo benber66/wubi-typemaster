@@ -12,11 +12,7 @@ import { existsSync, mkdirSync, readFileSync, unlinkSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createDbClient, closeDb } from '../src/db/client';
-import {
-  seedDatabase,
-  type WubiChar,
-  type WubiWord,
-} from '../src/lib/wubi/lookup';
+import { seedDatabase, type WubiChar, type WubiWord } from '../src/lib/wubi/lookup';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

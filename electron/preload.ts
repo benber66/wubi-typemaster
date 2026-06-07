@@ -16,8 +16,10 @@ const api: ElectronAPI = {
     lookupChar: (char) => ipcRenderer.invoke('wubi:lookupChar', char) as Promise<WubiChar | null>,
     lookupCode: (code) => ipcRenderer.invoke('wubi:lookupCode', code) as Promise<WubiChar[]>,
     lookupWord: (word) => ipcRenderer.invoke('wubi:lookupWord', word) as Promise<WubiWord | null>,
-    listCoreChars: (limit) => ipcRenderer.invoke('wubi:listCoreChars', limit) as Promise<WubiChar[]>,
-    listCoreWords: (limit) => ipcRenderer.invoke('wubi:listCoreWords', limit) as Promise<WubiWord[]>,
+    listCoreChars: (limit) =>
+      ipcRenderer.invoke('wubi:listCoreChars', limit) as Promise<WubiChar[]>,
+    listCoreWords: (limit) =>
+      ipcRenderer.invoke('wubi:listCoreWords', limit) as Promise<WubiWord[]>,
   },
   sessions: {
     insert: (session, errors) =>
@@ -26,8 +28,7 @@ const api: ElectronAPI = {
       ipcRenderer.invoke('sessions:list', mode, limit) as Promise<PracticeSessionRecord[]>,
     errors: (sessionId) =>
       ipcRenderer.invoke('sessions:errors', sessionId) as Promise<SessionErrorRecord[]>,
-    summary: (mode) =>
-      ipcRenderer.invoke('sessions:summary', mode) as Promise<SessionSummary>,
+    summary: (mode) => ipcRenderer.invoke('sessions:summary', mode) as Promise<SessionSummary>,
     delete: (id) => ipcRenderer.invoke('sessions:delete', id) as Promise<boolean>,
   },
   settings: {

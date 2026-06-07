@@ -19,16 +19,17 @@
 
 ## 2. 工具选型
 
-| 类型 | 工具 | 备注 |
-|---|---|---|
-| 单元 / 集成 | Vitest | 启动快、API 与 Jest 兼容 |
-| E2E | Playwright | 支持 Electron、原生并行 |
-| 覆盖率 | @vitest/coverage-v8 | 内置 |
-| 组件 | @testing-library/react | 行为驱动测试 |
+| 类型        | 工具                   | 备注                     |
+| ----------- | ---------------------- | ------------------------ |
+| 单元 / 集成 | Vitest                 | 启动快、API 与 Jest 兼容 |
+| E2E         | Playwright             | 支持 Electron、原生并行  |
+| 覆盖率      | @vitest/coverage-v8    | 内置                     |
+| 组件        | @testing-library/react | 行为驱动测试             |
 
 ## 3. 文件组织
 
 ### 3.1 测试文件位置
+
 **就近原则**：测试文件与被测代码放在同一目录或集中目录：
 
 ```
@@ -46,12 +47,14 @@ src/lib/wubi/lookup.test.ts           # 就近
 本项目采用**集中目录**（`tests/unit/`）。
 
 ### 3.2 命名约定
+
 - 单元测试：`*.test.ts` 或 `*.spec.ts`
 - E2E 测试：`*.spec.ts`（Playwright 默认）
 
 ## 4. 编写规范
 
 ### 4.1 单元测试
+
 ```typescript
 import { describe, it, expect } from 'vitest';
 import { calculateWpm } from '@/lib/typing/metrics';
@@ -68,6 +71,7 @@ describe('calculateWpm', () => {
 ```
 
 ### 4.2 组件测试
+
 ```typescript
 import { render, screen } from '@testing-library/react';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -82,6 +86,7 @@ describe('Home page', () => {
 ```
 
 ### 4.3 E2E 测试
+
 ```typescript
 import { test, expect, _electron as electron } from '@playwright/test';
 
@@ -96,14 +101,14 @@ test('article mode: complete a short text', async () => {
 
 ## 5. 覆盖率要求
 
-| 模块 | 最低覆盖率 | v0.1.1 实测 |
-|---|---|---|
+| 模块                 | 最低覆盖率        | v0.1.1 实测                          |
+| -------------------- | ----------------- | ------------------------------------ |
 | `lib/wubi/lookup.ts` | 100% 行/语句/函数 | ✅ 100% / 100% / 100%（分支 85.34%） |
-| `db/client.ts` | 80% 行 | ✅ 94.52%（分支 82.6%） |
-| `lib/typing/` | 100% | 待 Phase 3 实施 |
-| 业务组件 | 70% | 待 Phase 2+ 实施 |
-| UI 通用组件 | 50% | 待 Phase 2+ 实施 |
-| 整体 | 60% | 待 Phase 2+ |
+| `db/client.ts`       | 80% 行            | ✅ 94.52%（分支 82.6%）              |
+| `lib/typing/`        | 100%              | 待 Phase 3 实施                      |
+| 业务组件             | 70%               | 待 Phase 2+ 实施                     |
+| UI 通用组件          | 50%               | 待 Phase 2+ 实施                     |
+| 整体                 | 60%               | 待 Phase 2+                          |
 
 ### 5.1 双实现一致性测试
 
@@ -130,6 +135,7 @@ pnpm test:watch
 ## 7. CI 集成
 
 CI 中：
+
 - PR / push main → 跑 unit + integration
 - PR 需 label `run-e2e` → 才跑 E2E（避免资源浪费）
 

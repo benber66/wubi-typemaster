@@ -20,7 +20,9 @@ test.describe('Article page', () => {
     await expect(page.getByRole('button', { name: '重新开始' })).toBeVisible();
   });
 
-  test('multi-char IME commit advances position correctly (regression: getLastChar bug)', async ({ page }) => {
+  test('multi-char IME commit advances position correctly (regression: getLastChar bug)', async ({
+    page,
+  }) => {
     await page.goto('/');
     const articleCard = page.locator('[class*="group"]').filter({ hasText: '文章跟打' }).first();
     await articleCard.getByRole('button', { name: '开始' }).click();
@@ -36,7 +38,9 @@ test.describe('Article page', () => {
     await expect(page.locator('text=2 /')).toBeVisible({ timeout: 3000 });
   });
 
-  test('shows 编码 readout for the active target char (regression: empty PRACTICE_LOOKUP)', async ({ page }) => {
+  test('shows 编码 readout for the active target char (regression: empty PRACTICE_LOOKUP)', async ({
+    page,
+  }) => {
     await page.goto('/');
     const articleCard = page.locator('[class*="group"]').filter({ hasText: '文章跟打' }).first();
     await articleCard.getByRole('button', { name: '开始' }).click();

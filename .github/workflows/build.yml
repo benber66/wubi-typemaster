@@ -48,8 +48,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wubi-typemaster-${{ matrix.os }}
-          path: |
-            release/*.exe
-            release/*.AppImage
-            release/*.deb
+          path: release/**/*
           retention-days: 14

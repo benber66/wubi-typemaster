@@ -1,8 +1,5 @@
 import type { Database } from 'better-sqlite3';
-import {
-  type AppSettings,
-  DEFAULT_SETTINGS,
-} from '@/types/settings';
+import { type AppSettings, DEFAULT_SETTINGS } from '@/types/settings';
 
 export interface SettingsRecord {
   key: string;

@@ -86,15 +86,19 @@ describe('db/client', () => {
 
     it('不重复应用迁移', () => {
       const db = createDbClient({ path: dbPath });
-      const firstCount = (db.prepare('SELECT COUNT(*) as c FROM schema_migrations').get() as {
-        c: number;
-      }).c;
+      const firstCount = (
+        db.prepare('SELECT COUNT(*) as c FROM schema_migrations').get() as {
+          c: number;
+        }
+      ).c;
       // 关闭后重新打开（不删文件）
       closeDb(db);
       const db2 = createDbClient({ path: dbPath });
-      const secondCount = (db2.prepare('SELECT COUNT(*) as c FROM schema_migrations').get() as {
-        c: number;
-      }).c;
+      const secondCount = (
+        db2.prepare('SELECT COUNT(*) as c FROM schema_migrations').get() as {
+          c: number;
+        }
+      ).c;
       expect(secondCount).toBe(firstCount);
       closeDb(db2);
     });

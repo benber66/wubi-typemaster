@@ -36,23 +36,30 @@ export function PixiBubbles({ width, height, bubbles, typed }: PixiBubblesProps)
     const destroyOnce = () => {
       if (destroyed) return;
       destroyed = true;
-      try { app.destroy(true, { children: true }); } catch { /* ignore */ }
-    };
-    void app.init({ width, height, background: BG_COLOR, antialias: true }).then(() => {
-      if (!container.isConnected || destroyed) {
-        destroyOnce();
-        return;
+      try {
+        app.destroy(true, { children: true });
+      } catch {
+        /* ignore */
       }
-      container.appendChild(app.canvas);
-      appRef.current = app;
-      const stage = new Container();
-      app.stage.addChild(stage);
-      stageRef.current = stage;
-    }).catch((err: unknown) => {
-      destroyOnce();
-      const msg = err instanceof Error ? err.message : String(err);
-      setError(`Pixi 初始化失败: ${msg}`);
-    });
+    };
+    void app
+      .init({ width, height, background: BG_COLOR, antialias: true })
+      .then(() => {
+        if (!container.isConnected || destroyed) {
+          destroyOnce();
+          return;
+        }
+        container.appendChild(app.canvas);
+        appRef.current = app;
+        const stage = new Container();
+        app.stage.addChild(stage);
+        stageRef.current = stage;
+      })
+      .catch((err: unknown) => {
+        destroyOnce();
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(`Pixi 初始化失败: ${msg}`);
+      });
     return () => {
       destroyOnce();
       if (appRef.current === app) {

@@ -26,6 +26,11 @@ export default defineConfig({
         'src/components/ThemeProvider/**',
         'src/components/VirtualKeyboard/**',
         'src/pages/**',
+        'src/hooks/**',
+        'src/components/CodeHint/**',
+        'src/components/PixiBubbles/**',
+        'src/components/PixiInvaders/**',
+        'electron/ipc/**',
         // Entry points — tested via E2E
         'src/main.tsx',
         'src/App.tsx',

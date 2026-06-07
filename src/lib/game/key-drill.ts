@@ -70,28 +70,33 @@ export function filterByKey(
     if (code.split('').some((k) => keys.includes(k))) {
       out.push(
         'char' in item
-          ? { text: item.char, code: item.code, isCore: item.isCore, type: 'char', weight: item.weight }
-          : { text: item.word, code: item.code, isCore: item.isCore, type: 'word', weight: item.weight },
+          ? {
+              text: item.char,
+              code: item.code,
+              isCore: item.isCore,
+              type: 'char',
+              weight: item.weight,
+            }
+          : {
+              text: item.word,
+              code: item.code,
+              isCore: item.isCore,
+              type: 'word',
+              weight: item.weight,
+            },
       );
     }
   }
   return out;
 }
 
-export function pickDrillQueue(
-  items: ReadonlyArray<DrillItem>,
-  count: number,
-): DrillItem[] {
+export function pickDrillQueue(items: ReadonlyArray<DrillItem>, count: number): DrillItem[] {
   if (items.length === 0) return [];
   const sorted = [...items].sort((a, b) => b.weight - a.weight);
   return sorted.slice(0, count);
 }
 
-export function recordKey(
-  state: DrillState,
-  key: string,
-  isCorrect: boolean,
-): DrillState {
+export function recordKey(state: DrillState, key: string, isCorrect: boolean): DrillState {
   const k = key.toLowerCase();
   const errorsByKey = new Map(state.errorsByKey);
   const pressesByKey = new Map(state.pressesByKey);
@@ -118,7 +123,11 @@ export function applyTyped(
   if (!isFullMatch && !item.code.startsWith(nextTyped)) {
     // 错误：清空 typed，但记录一次错误
     const recState = recordKey(state, key, false);
-    return { next: { ...recState, typed: '', totalAttempts: recState.totalAttempts + 1 }, isComplete: false, matched: null };
+    return {
+      next: { ...recState, typed: '', totalAttempts: recState.totalAttempts + 1 },
+      isComplete: false,
+      matched: null,
+    };
   }
   if (isFullMatch) {
     const recState = recordKey(state, key, true);
@@ -151,7 +160,7 @@ export function getAccuracy(correct: number, total: number): number {
 export function getWpm(correctKeystrokes: number, durationMs: number): number {
   if (correctKeystrokes <= 0 || durationMs <= 0) return 0;
   const minutes = durationMs / 60_000;
-  return Number(((correctKeystrokes / 5) / minutes).toFixed(2));
+  return Number((correctKeystrokes / 5 / minutes).toFixed(2));
 }
 
 export function summarizeKeyStats(state: DrillState): KeyStat[] {

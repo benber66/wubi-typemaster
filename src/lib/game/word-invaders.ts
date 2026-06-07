@@ -56,18 +56,16 @@ export interface GameActions {
   spawn: (pool: ReadonlyArray<WubiChar | WubiWord>, nextId: number) => number;
 }
 
-export function pickPoolItem(pool: ReadonlyArray<WubiChar | WubiWord>, seed?: number): WubiChar | WubiWord | null {
+export function pickPoolItem(
+  pool: ReadonlyArray<WubiChar | WubiWord>,
+  seed?: number,
+): WubiChar | WubiWord | null {
   if (pool.length === 0) return null;
   const idx = seed !== undefined ? seed % pool.length : Math.floor(Math.random() * pool.length);
   return pool[idx] ?? null;
 }
 
-export function makeInvader(
-  item: WubiChar | WubiWord,
-  x: number,
-  y: number,
-  id: number,
-): Invader {
+export function makeInvader(item: WubiChar | WubiWord, x: number, y: number, id: number): Invader {
   const isChar = 'char' in item;
   return {
     id,
@@ -132,5 +130,5 @@ export function getAccuracy(correct: number, total: number): number {
 export function getWpm(correctChars: number, durationMs: number): number {
   if (correctChars <= 0 || durationMs <= 0) return 0;
   const minutes = durationMs / 60_000;
-  return Number(((correctChars / 5) / minutes).toFixed(2));
+  return Number((correctChars / 5 / minutes).toFixed(2));
 }

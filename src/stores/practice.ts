@@ -1,5 +1,10 @@
 import { create } from 'zustand';
-import { compareTexts, calculateWpm, calculateAccuracy, type CharError } from '@/lib/typing/metrics';
+import {
+  compareTexts,
+  calculateWpm,
+  calculateAccuracy,
+  type CharError,
+} from '@/lib/typing/metrics';
 import { buildCharError, handleCommit, splitCommitText } from '@/lib/ime/input-handler';
 
 export type PracticeStatus = 'idle' | 'running' | 'paused' | 'completed';
@@ -74,7 +79,10 @@ function computeCharApply(
   const newErrors =
     event.typed === event.expected
       ? state.errors
-      : [...state.errors, buildCharError(state.position, event.expected, event.typed, expectedCode, typedCode)];
+      : [
+          ...state.errors,
+          buildCharError(state.position, event.expected, event.typed, expectedCode, typedCode),
+        ];
   const newPosition = state.position + 1;
   const completed = newPosition >= state.targetText.length;
   const update: Partial<PracticeSessionState> = {
@@ -86,7 +94,7 @@ function computeCharApply(
     update.status = 'completed';
     update.endTime = Date.now();
   }
-  const error = event.typed === event.expected ? null : newErrors[newErrors.length - 1] ?? null;
+  const error = event.typed === event.expected ? null : (newErrors[newErrors.length - 1] ?? null);
   return { update, error };
 }
 
@@ -124,7 +132,12 @@ export const usePractice = create<PracticeStore>((set, get) => ({
       const s = get();
       if (s.status !== 'running') break;
       const expected = s.position < s.targetText.length ? (s.targetText[s.position] ?? '') : '';
-      const { update, error } = computeCharApply(s, ch, lookup.expectedCode(expected), lookup.typedCode(ch));
+      const { update, error } = computeCharApply(
+        s,
+        ch,
+        lookup.expectedCode(expected),
+        lookup.typedCode(ch),
+      );
       if (error !== null) errors.push(error);
       if (update === null) break;
       set(update);

@@ -1,4 +1,9 @@
-import { createLookupFromJson, type WubiLookup, type WubiChar, type WubiWord } from '@/lib/wubi/lookup';
+import {
+  createLookupFromJson,
+  type WubiLookup,
+  type WubiChar,
+  type WubiWord,
+} from '@/lib/wubi/lookup';
 import charsData from '@/data/wubi86-chars.json';
 import wordsData from '@/data/wubi86-words.json';
 

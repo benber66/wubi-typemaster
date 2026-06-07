@@ -10,10 +10,7 @@ function newTestDb() {
   const dir = mkdtempSync(join(tmpdir(), 'wubi-test-'));
   const path = join(dir, 'test.sqlite');
   const db = new Database(path);
-  const initSql = readFileSync(
-    join(process.cwd(), 'src/db/migrations/001_initial.sql'),
-    'utf-8',
-  );
+  const initSql = readFileSync(join(process.cwd(), 'src/db/migrations/001_initial.sql'), 'utf-8');
   db.exec(initSql);
   return { db, dir, path };
 }

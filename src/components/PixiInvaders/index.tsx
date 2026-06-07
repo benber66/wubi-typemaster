@@ -49,32 +49,39 @@ export function PixiInvaders({
     const destroyOnce = () => {
       if (destroyed) return;
       destroyed = true;
-      try { app.destroy(true, { children: true }); } catch { /* ignore */ }
-    };
-    void app.init({ width, height, background: BG_COLOR, antialias: true }).then(() => {
-      if (!container.isConnected || destroyed) {
-        destroyOnce();
-        return;
+      try {
+        app.destroy(true, { children: true });
+      } catch {
+        /* ignore */
       }
-      container.appendChild(app.canvas);
-      appRef.current = app;
-      const stage = new Container();
-      app.stage.addChild(stage);
-      stageRef.current = stage;
-      const hud = new Text({
-        text: '',
-        style: { fill: TEXT_COLOR, fontSize: 14, fontFamily: 'monospace' },
+    };
+    void app
+      .init({ width, height, background: BG_COLOR, antialias: true })
+      .then(() => {
+        if (!container.isConnected || destroyed) {
+          destroyOnce();
+          return;
+        }
+        container.appendChild(app.canvas);
+        appRef.current = app;
+        const stage = new Container();
+        app.stage.addChild(stage);
+        stageRef.current = stage;
+        const hud = new Text({
+          text: '',
+          style: { fill: TEXT_COLOR, fontSize: 14, fontFamily: 'monospace' },
+        });
+        hud.x = 10;
+        hud.y = 10;
+        app.stage.addChild(hud);
+        hudRef.current = hud;
+        onCanvasReady?.(app);
+      })
+      .catch((err: unknown) => {
+        destroyOnce();
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(`Pixi 初始化失败: ${msg}`);
       });
-      hud.x = 10;
-      hud.y = 10;
-      app.stage.addChild(hud);
-      hudRef.current = hud;
-      onCanvasReady?.(app);
-    }).catch((err: unknown) => {
-      destroyOnce();
-      const msg = err instanceof Error ? err.message : String(err);
-      setError(`Pixi 初始化失败: ${msg}`);
-    });
     return () => {
       destroyOnce();
       if (appRef.current === app) {

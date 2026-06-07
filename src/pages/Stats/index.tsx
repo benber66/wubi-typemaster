@@ -81,14 +81,12 @@ export function StatsPage() {
 
   const chartData = useMemo(
     () =>
-      [...sessions]
-        .reverse()
-        .map((s, idx) => ({
-          idx: idx + 1,
-          wpm: s.wpm,
-          accuracy: Number((s.accuracy * 100).toFixed(1)),
-          time: formatTimestamp(s.startedAt),
-        })),
+      [...sessions].reverse().map((s, idx) => ({
+        idx: idx + 1,
+        wpm: s.wpm,
+        accuracy: Number((s.accuracy * 100).toFixed(1)),
+        time: formatTimestamp(s.startedAt),
+      })),
     [sessions],
   );
 
@@ -213,7 +211,11 @@ export function StatsPage() {
                 <Tooltip
                   content={({ active, payload }) => {
                     if (!active || !payload || payload.length === 0) return null;
-                    const p = payload[0]?.payload as { wpm: number; accuracy: number; time: string };
+                    const p = payload[0]?.payload as {
+                      wpm: number;
+                      accuracy: number;
+                      time: string;
+                    };
                     return (
                       <div className="rounded border bg-card p-2 text-xs shadow">
                         <div>{p.time}</div>
@@ -223,7 +225,13 @@ export function StatsPage() {
                     );
                   }}
                 />
-                <Line type="monotone" dataKey="wpm" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
+                <Line
+                  type="monotone"
+                  dataKey="wpm"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -250,9 +258,7 @@ export function StatsPage() {
         </Card>
       )}
 
-      {sessions.length === 0 && !loading && (
-        <EmptyState message="还没有练习记录" />
-      )}
+      {sessions.length === 0 && !loading && <EmptyState message="还没有练习记录" />}
 
       {sessions.length > 0 && (
         <Card>
@@ -277,13 +283,17 @@ export function StatsPage() {
                 <tbody>
                   {sessions.map((s) => (
                     <tr key={s.id} className="border-b last:border-0">
-                      <td className="py-2 pr-3 font-mono text-xs">{formatTimestamp(s.startedAt)}</td>
+                      <td className="py-2 pr-3 font-mono text-xs">
+                        {formatTimestamp(s.startedAt)}
+                      </td>
                       <td className="py-2 pr-3">{s.mode}</td>
                       <td className="py-2 pr-3 text-right">{s.totalChars}</td>
                       <td className="py-2 pr-3 text-right">{(s.durationMs / 1000).toFixed(1)}s</td>
                       <td className="py-2 pr-3 text-right font-semibold">{s.wpm}</td>
                       <td className="py-2 pr-3 text-right">{(s.accuracy * 100).toFixed(1)}%</td>
-                      <td className="py-2 pr-3 text-right text-destructive">{s.totalChars - s.correctChars}</td>
+                      <td className="py-2 pr-3 text-right text-destructive">
+                        {s.totalChars - s.correctChars}
+                      </td>
                       <td className="py-2 text-right">
                         <Button
                           variant="ghost"

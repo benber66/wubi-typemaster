@@ -194,8 +194,11 @@ async function main(): Promise<void> {
 
     if (text.length === 1) {
       const existing = charMap.get(text);
-      if (!existing || code.length < existing.code.length ||
-          (code.length === existing.code.length && weight > existing.weight)) {
+      if (
+        !existing ||
+        code.length < existing.code.length ||
+        (code.length === existing.code.length && weight > existing.weight)
+      ) {
         charMap.set(text, { code, weight });
       }
     } else if (text.length >= 2 && text.length <= 4) {
@@ -293,16 +296,20 @@ async function main(): Promise<void> {
   log(``);
   log(`核心集: ${coreCharCount} 字 + ${coreWordCount} 词`);
   log(``);
-  log(`核心单字 top10: ${chars
-    .filter((c) => c.isCore)
-    .slice(0, 10)
-    .map((c) => `${c.char}=${c.code}`)
-    .join(', ')}`);
-  log(`核心词组 top10: ${words
-    .filter((w) => w.isCore)
-    .slice(0, 10)
-    .map((w) => `${w.word}=${w.code}`)
-    .join(', ')}`);
+  log(
+    `核心单字 top10: ${chars
+      .filter((c) => c.isCore)
+      .slice(0, 10)
+      .map((c) => `${c.char}=${c.code}`)
+      .join(', ')}`,
+  );
+  log(
+    `核心词组 top10: ${words
+      .filter((w) => w.isCore)
+      .slice(0, 10)
+      .map((w) => `${w.word}=${w.code}`)
+      .join(', ')}`,
+  );
 }
 
 main().catch((err) => {

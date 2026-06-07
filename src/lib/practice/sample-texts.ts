@@ -23,7 +23,8 @@ export const SAMPLE_TEXTS: ReadonlyArray<{
     id: 'essay-1',
     title: '散文 · 时光',
     level: 'advanced',
-    content: '时间如流水般悄然逝去，留下的只有回忆与期盼。我们在键盘的敲击声中，度过每一个充实的日子。',
+    content:
+      '时间如流水般悄然逝去，留下的只有回忆与期盼。我们在键盘的敲击声中，度过每一个充实的日子。',
   },
   {
     id: 'poem-1',
@@ -39,11 +40,11 @@ export const SAMPLE_TEXTS: ReadonlyArray<{
   },
 ];
 
-export function getSampleTextById(id: string): typeof SAMPLE_TEXTS[number] | undefined {
+export function getSampleTextById(id: string): (typeof SAMPLE_TEXTS)[number] | undefined {
   return SAMPLE_TEXTS.find((t) => t.id === id);
 }
 
-export function getRandomSampleText(seed?: number): typeof SAMPLE_TEXTS[number] {
+export function getRandomSampleText(seed?: number): (typeof SAMPLE_TEXTS)[number] {
   if (SAMPLE_TEXTS.length === 0) {
     throw new Error('No sample texts available');
   }

@@ -17,19 +17,20 @@ GitHub (主仓)
 ```
 
 **为什么不直接用 Gitee Go？**
+
 - Gitee Go 不支持 macOS runner，跨平台构建矩阵受限
 - GitHub Actions 生态成熟，Electron 跨平台构建教程丰富
 - 选择 **主仓 GitHub 跑 CI + 镜像推 Gitee** 的方案
 
 ## 2. 工作流设计
 
-| 文件 | 触发 | 任务 | 输出 |
-|---|---|---|---|
-| `ci.yml` | PR / push main | lint + typecheck + 单元 + 集成 + 覆盖率 | Codecov 报告 |
-| `e2e.yml` | PR (需 label) / main | Playwright E2E (Win + Ubuntu 矩阵) | 测试报告 + 截图 |
-| `build.yml` | push main | electron-builder 跨平台构建 | artifacts |
-| `release.yml` | push tag `v*` | 发布 GitHub Release → 同步 Gitee | GitHub + Gitee Release |
-| `codeql.yml` | 每周 / PR | 代码安全扫描 | 安全告警 |
+| 文件          | 触发                 | 任务                                    | 输出                   |
+| ------------- | -------------------- | --------------------------------------- | ---------------------- |
+| `ci.yml`      | PR / push main       | lint + typecheck + 单元 + 集成 + 覆盖率 | Codecov 报告           |
+| `e2e.yml`     | PR (需 label) / main | Playwright E2E (Win + Ubuntu 矩阵)      | 测试报告 + 截图        |
+| `build.yml`   | push main            | electron-builder 跨平台构建             | artifacts              |
+| `release.yml` | push tag `v*`        | 发布 GitHub Release → 同步 Gitee        | GitHub + Gitee Release |
+| `codeql.yml`  | 每周 / PR            | 代码安全扫描                            | 安全告警               |
 
 ## 3. 国内访问优化
 
@@ -61,7 +62,9 @@ env:
 ## 5. Gitee 同步
 
 ### 5.1 仓库代码同步
+
 使用 `yanglbme/gitee-repo-mirror` action，定时或 push 触发：
+
 ```yaml
 - name: Mirror to Gitee
   uses: yanglbme/gitee-repo-mirror@main
@@ -73,7 +76,9 @@ env:
 ```
 
 ### 5.2 Release 产物同步
+
 自定义脚本 `scripts/sync-gitee-release.mjs`：
+
 - 调用 Gitee OpenAPI 创建 Release
 - 上传 GitHub Release 中的所有 assets
 - 需要 Gitee Access Token（在 GitHub Secrets 中配置）
@@ -81,6 +86,7 @@ env:
 ## 6. 自动更新实现
 
 ### 6.1 electron-updater 配置
+
 ```typescript
 // electron/updater.ts
 import { autoUpdater } from 'electron-updater';
@@ -97,7 +103,9 @@ autoUpdater.setFeedURL({
 ```
 
 ### 6.2 双 Feed 切换
+
 在设置页提供切换选项：
+
 - **GitHub Releases**（默认，海外用户）
 - **Gitee Releases**（国内用户，访问更快）
 
@@ -106,7 +114,7 @@ function switchFeed(source: 'github' | 'gitee') {
   if (source === 'gitee') {
     autoUpdater.setFeedURL({
       provider: 'generic',
-      url: 'https://gitee.com/benber66/wubi-typemaster/releases/latest/download/'
+      url: 'https://gitee.com/benber66/wubi-typemaster/releases/latest/download/',
     });
   }
 }
@@ -114,13 +122,13 @@ function switchFeed(source: 'github' | 'gitee') {
 
 ## 7. 必需的 GitHub Secrets
 
-| Secret | 用途 | 必需 |
-|---|---|---|
-| `GITEE_TOKEN` | Gitee OpenAPI 认证 | ✅ |
-| `GITEE_PRIVATE_KEY` | Gitee 仓库 SSH 同步 | ✅ |
-| `CODECOV_TOKEN` | 覆盖率上报 | ❌（可选） |
-| `WIN_CSC_LINK` | Windows 代码签名证书 | ❌（MVP 不做） |
-| `WIN_CSC_KEY_PASSWORD` | 签名证书密码 | ❌（MVP 不做） |
+| Secret                 | 用途                 | 必需           |
+| ---------------------- | -------------------- | -------------- |
+| `GITEE_TOKEN`          | Gitee OpenAPI 认证   | ✅             |
+| `GITEE_PRIVATE_KEY`    | Gitee 仓库 SSH 同步  | ✅             |
+| `CODECOV_TOKEN`        | 覆盖率上报           | ❌（可选）     |
+| `WIN_CSC_LINK`         | Windows 代码签名证书 | ❌（MVP 不做） |
+| `WIN_CSC_KEY_PASSWORD` | 签名证书密码         | ❌（MVP 不做） |
 
 ## 8. 版本发布流程
 

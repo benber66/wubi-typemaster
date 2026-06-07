@@ -93,12 +93,7 @@ describe('compareTexts', () => {
   });
 
   it('records typedCode when provided', () => {
-    const result = compareTexts(
-      '中',
-      '国',
-      ['k'],
-      ['l'],
-    );
+    const result = compareTexts('中', '国', ['k'], ['l']);
     expect(result.errors[0]).toEqual({
       position: 0,
       expected: '中',

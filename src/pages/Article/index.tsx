@@ -10,16 +10,25 @@ import { isFinalCommit, extractCommitText } from '@/lib/ime/input-handler';
 import { getCharCode, getWordSuggestions } from '@/lib/practice/lookup-bridge';
 import { findKeyByChar } from '@/components/VirtualKeyboard/layout';
 
-function findWubiEntriesForChar(
-  char: string | null,
-): { code: string | null; words: ReturnType<typeof getWordSuggestions> } {
+function findWubiEntriesForChar(char: string | null): {
+  code: string | null;
+  words: ReturnType<typeof getWordSuggestions>;
+} {
   return {
     code: getCharCode(char),
     words: getWordSuggestions(char),
   };
 }
 
-function ReadingText({ target, position, errors }: { target: string; position: number; errors: ReadonlyArray<{ position: number }> }) {
+function ReadingText({
+  target,
+  position,
+  errors,
+}: {
+  target: string;
+  position: number;
+  errors: ReadonlyArray<{ position: number }>;
+}) {
   const errorPositions = new Set(errors.map((e) => e.position));
   return (
     <div className="font-mono text-2xl leading-loose tracking-wide">
@@ -44,7 +53,19 @@ function ReadingText({ target, position, errors }: { target: string; position: n
   );
 }
 
-function StatsBar({ wpm, accuracy, position, total, duration }: { wpm: number; accuracy: number; position: number; total: number; duration: number }) {
+function StatsBar({
+  wpm,
+  accuracy,
+  position,
+  total,
+  duration,
+}: {
+  wpm: number;
+  accuracy: number;
+  position: number;
+  total: number;
+  duration: number;
+}) {
   return (
     <div className="grid grid-cols-4 gap-3 text-sm">
       <div>
@@ -165,7 +186,7 @@ export function ArticlePage() {
   const activeEntry = useMemo(() => findWubiEntriesForChar(activeChar), [activeChar]);
   const pressedKeys = useMemo(() => {
     if (!activeEntry.code) return [];
-    const prefix = typedPrefix.length > 0 ? typedPrefix : activeEntry.code[0] ?? '';
+    const prefix = typedPrefix.length > 0 ? typedPrefix : (activeEntry.code[0] ?? '');
     return activeEntry.code.slice(0, prefix.length).split('');
   }, [activeEntry.code, typedPrefix]);
 
@@ -229,9 +250,7 @@ export function ArticlePage() {
     <div className="mx-auto max-w-4xl space-y-4 p-8">
       <header>
         <h1 className="text-3xl font-bold">文章跟打</h1>
-        <p className="mt-1 text-muted-foreground">
-          选择文本 · 用五笔输入 · 错字弹码提示
-        </p>
+        <p className="mt-1 text-muted-foreground">选择文本 · 用五笔输入 · 错字弹码提示</p>
       </header>
 
       {status === 'idle' && (
@@ -376,8 +395,13 @@ export function ArticlePage() {
                 {result.errors.slice(0, 10).map((e, i) => (
                   <div key={i} className="flex gap-3 rounded border bg-muted/40 px-2 py-1">
                     <span className="text-muted-foreground">位置 {e.position + 1}</span>
-                    <span>期望 <span className="font-mono">{e.expected}</span> ({e.expectedCode})</span>
-                    <span>输入 <span className="font-mono text-destructive">{e.typed}</span> ({e.typedCode ?? '—'})</span>
+                    <span>
+                      期望 <span className="font-mono">{e.expected}</span> ({e.expectedCode})
+                    </span>
+                    <span>
+                      输入 <span className="font-mono text-destructive">{e.typed}</span> (
+                      {e.typedCode ?? '—'})
+                    </span>
                   </div>
                 ))}
               </div>

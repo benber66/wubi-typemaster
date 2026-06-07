@@ -21,7 +21,7 @@ You may obtain a copy of the License at
 
 - **File**: `hanzi_db.csv`
 - **Source**: [Scripta/cjk-project](https://github.com/Scripta/cjk-project) / `hanzi_db.csv`
-- **Original data**: Jun Da (笭家治), *Modern Chinese Frequency List* (《现代汉语常用字频率字典》)
+- **Original data**: Jun Da (笭家治), _Modern Chinese Frequency List_ (《现代汉语常用字频率字典》)
 - **License**: [MIT License](https://opensource.org/licenses/MIT)
 - **Format note**: First row is header (`rank,char,pinyin,definition,...`); 9,900 简体 characters
 
@@ -37,12 +37,12 @@ copies of the Software...
 ## 3. SUBTLEX-CH-WF — 词组频次
 
 - **File**: `SUBTLEX-CH-WF` (GB18030-encoded text)
-- **Source**: [Cai & Brysbaert (2010)](https://www.psychonomic.org/publication/journals/experimental-psychology/2009-06-05), *SUBTLEX-CH: Chinese word and character frequencies based on film subtitles*, PLOS ONE
+- **Source**: [Cai & Brysbaert (2010)](https://www.psychonomic.org/publication/journals/experimental-psychology/2009-06-05), _SUBTLEX-CH: Chinese word and character frequencies based on film subtitles_, PLOS ONE
 - **License**: Free for academic / research use. If you intend commercial
   publication, consider using SUBTLEX-CH-POS or an alternative corpus
   (e.g. People's Daily corpus) due to the academic-use restriction.
 - **Citation**:
-  > Cai, Q., & Brysbaert, M. (2010). SUBTLEX-CH: Chinese word and character frequencies based on film subtitles. *PLOS ONE*, 5(6), e10729.
+  > Cai, Q., & Brysbaert, M. (2010). SUBTLEX-CH: Chinese word and character frequencies based on film subtitles. _PLOS ONE_, 5(6), e10729.
 
 ## Generated Artifacts
 

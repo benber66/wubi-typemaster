@@ -39,7 +39,11 @@ export function registerUpdaterIpc(getMainWindow: () => BrowserWindow | null): v
   autoUpdater.autoInstallOnAppQuit = true;
 
   autoUpdater.on('update-available', (info: UpdateInfo) => {
-    patch({ available: true, version: info.version, releaseNotes: formatReleaseNotes(info.releaseNotes) });
+    patch({
+      available: true,
+      version: info.version,
+      releaseNotes: formatReleaseNotes(info.releaseNotes),
+    });
   });
   autoUpdater.on('update-not-available', () => {
     patch({ available: false, version: null, releaseNotes: null });

@@ -70,7 +70,10 @@ export interface ElectronAPI {
       session: Omit<PracticeSessionRecord, 'id'>,
       errors: ReadonlyArray<Omit<SessionErrorRecord, 'id' | 'sessionId' | 'createdAt'>>,
     ) => Promise<number>;
-    list: (mode?: PracticeSessionRecord['mode'], limit?: number) => Promise<PracticeSessionRecord[]>;
+    list: (
+      mode?: PracticeSessionRecord['mode'],
+      limit?: number,
+    ) => Promise<PracticeSessionRecord[]>;
     errors: (sessionId: number) => Promise<SessionErrorRecord[]>;
     summary: (mode?: PracticeSessionRecord['mode']) => Promise<SessionSummary>;
     delete: (id: number) => Promise<boolean>;
@@ -98,4 +101,3 @@ declare global {
     api: ElectronAPI;
   }
 }
-

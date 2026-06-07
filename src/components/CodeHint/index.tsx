@@ -33,7 +33,12 @@ function WordHint({ word }: { word: WubiWord }) {
   );
 }
 
-export function CodeHint({ expectedChar, expectedCode, wordSuggestions = [], onDismiss }: CodeHintProps) {
+export function CodeHint({
+  expectedChar,
+  expectedCode,
+  wordSuggestions = [],
+  onDismiss,
+}: CodeHintProps) {
   const showVirtualKeyboard = useSettings((s) => s.settings.showVirtualKeyboard);
 
   if (expectedChar === null || expectedCode === null) {
@@ -68,14 +73,21 @@ export function CodeHint({ expectedChar, expectedCode, wordSuggestions = [], onD
       )}
       {showVirtualKeyboard && (
         <div className="mt-2 text-[10px] text-muted-foreground">
-          按 <span className="font-mono font-semibold">{expectedCode.toUpperCase().split('').join(' ')}</span> 输入
+          按{' '}
+          <span className="font-mono font-semibold">
+            {expectedCode.toUpperCase().split('').join(' ')}
+          </span>{' '}
+          输入
         </div>
       )}
     </div>
   );
 }
 
-export function buildWordSuggestions(char: string | null, words: ReadonlyArray<WubiWord>): WubiWord[] {
+export function buildWordSuggestions(
+  char: string | null,
+  words: ReadonlyArray<WubiWord>,
+): WubiWord[] {
   if (char === null) return [];
   return words.filter((w) => w.word.includes(char)).slice(0, 4);
 }

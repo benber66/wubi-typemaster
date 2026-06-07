@@ -10,26 +10,26 @@
 
 数据库由主进程通过 `app.getPath('userData')` 或 `path.join(process.cwd(), 'data')` 创建：
 
-| 模式 | 路径 |
-|---|---|
-| 开发模式 | `<repo>/data/db.sqlite` |
-| Windows 生产 | `%APPDATA%\wubi-typemaster\db.sqlite` |
-| Linux 生产 | `~/.config/wubi-typemaster/db.sqlite` |
+| 模式               | 路径                                                      |
+| ------------------ | --------------------------------------------------------- |
+| 开发模式           | `<repo>/data/db.sqlite`                                   |
+| Windows 生产       | `%APPDATA%\wubi-typemaster\db.sqlite`                     |
+| Linux 生产         | `~/.config/wubi-typemaster/db.sqlite`                     |
 | macOS 生产（预留） | `~/Library/Application Support/wubi-typemaster/db.sqlite` |
 
 > 开发期 SQLite 文件位于 `data/`，已 `.gitignore`；不随仓库发布。
 
 ### 1.2 表清单（6 表 + 1 元数据表）
 
-| 表 | Phase | 用途 |
-|---|---|---|
-| `wubi_chars` | 1 | 五笔单字码表（21,586 行） |
-| `wubi_words` | 1 | 五笔词组码表（62,323 行） |
-| `key_stats` | 3 | 26 字母键位统计 |
-| `practice_sessions` | 3 | 练习记录 |
-| `session_errors` | 3 | 错字明细 |
-| `settings` | 2+ | 用户设置 KV |
-| `schema_migrations` | 1 | 迁移元数据 |
+| 表                  | Phase | 用途                      |
+| ------------------- | ----- | ------------------------- |
+| `wubi_chars`        | 1     | 五笔单字码表（21,586 行） |
+| `wubi_words`        | 1     | 五笔词组码表（62,323 行） |
+| `key_stats`         | 3     | 26 字母键位统计           |
+| `practice_sessions` | 3     | 练习记录                  |
+| `session_errors`    | 3     | 错字明细                  |
+| `settings`          | 2+    | 用户设置 KV               |
+| `schema_migrations` | 1     | 迁移元数据                |
 
 ### 1.3 当前数据规模（v0.1.1 验证）
 
@@ -201,10 +201,10 @@ PRAGMA user_version = N; // 写入新版本
 
 迁移文件位于 `src/db/migrations/`，按文件名字母序应用：
 
-| 文件 | 版本 | 描述 |
-|---|---|---|
-| `001_initial.sql` | 1 | 全部 6 表 + 索引 + 默认设置 |
-| `002_add_is_core.sql` | 2 | 添加 `is_core` 列 + 4 个部分索引 |
+| 文件                  | 版本 | 描述                             |
+| --------------------- | ---- | -------------------------------- |
+| `001_initial.sql`     | 1    | 全部 6 表 + 索引 + 默认设置      |
+| `002_add_is_core.sql` | 2    | 添加 `is_core` 列 + 4 个部分索引 |
 
 新增迁移规范：
 
@@ -214,11 +214,11 @@ PRAGMA user_version = N; // 写入新版本
 
 ## 4. 备份策略
 
-| 触发 | 行为 |
-|---|---|
-| 启动 | `db.sqlite.bak` 覆盖式备份 |
+| 触发     | 行为                             |
+| -------- | -------------------------------- |
+| 启动     | `db.sqlite.bak` 覆盖式备份       |
 | 每周一次 | `backups/db-{YYYY-MM-DD}.sqlite` |
-| 用户主动 | 导出 / 导入（设置页提供） |
+| 用户主动 | 导出 / 导入（设置页提供）        |
 
 ## 5. 性能考虑
 
@@ -231,11 +231,11 @@ PRAGMA user_version = N; // 写入新版本
 
 ## 6. 代码入口
 
-| 文件 | 作用 |
-|---|---|
-| `src/db/client.ts` | `createDbClient` / `applyMigrations` / 单例 |
-| `src/db/migrations/*.sql` | SQL 迁移文件 |
-| `src/lib/wubi/lookup.ts` | 业务层 API（内存 + DB 双实现） |
-| `scripts/seed-db.ts` | 从 `src/data/wubi86-*.json` 灌入数据 |
+| 文件                      | 作用                                        |
+| ------------------------- | ------------------------------------------- |
+| `src/db/client.ts`        | `createDbClient` / `applyMigrations` / 单例 |
+| `src/db/migrations/*.sql` | SQL 迁移文件                                |
+| `src/lib/wubi/lookup.ts`  | 业务层 API（内存 + DB 双实现）              |
+| `scripts/seed-db.ts`      | 从 `src/data/wubi86-*.json` 灌入数据        |
 
 详见：[lookup-api.md](./lookup-api.md)

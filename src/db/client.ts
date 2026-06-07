@@ -62,7 +62,9 @@ export function applyMigrations(db: Database.Database, dir: string = MIGRATIONS_
   `);
 
   // 2. 读取已应用版本
-  const appliedRows = db.prepare('SELECT version FROM schema_migrations').all() as { version: number }[];
+  const appliedRows = db.prepare('SELECT version FROM schema_migrations').all() as {
+    version: number;
+  }[];
   const appliedVersions = new Set(appliedRows.map((r) => r.version));
 
   // 3. 加载并应用未应用的迁移

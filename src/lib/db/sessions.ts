@@ -113,7 +113,14 @@ export function insertSession(
     );
     const sessionId = result.lastInsertRowid as number;
     for (const e of errors) {
-      insertError.run(sessionId, e.position, e.expected, e.typed, e.expectedCode, e.typedCode ?? null);
+      insertError.run(
+        sessionId,
+        e.position,
+        e.expected,
+        e.typed,
+        e.expectedCode,
+        e.typedCode ?? null,
+      );
     }
     return sessionId;
   });
@@ -147,9 +154,10 @@ export function listSessions(
 
 export function getSessionErrors(db: Database, sessionId: number): SessionErrorRow[] {
   const rows = db
-    .prepare<[number], Record<string, unknown>>(
-      'SELECT * FROM session_errors WHERE session_id = ? ORDER BY position ASC',
-    )
+    .prepare<
+      [number],
+      Record<string, unknown>
+    >('SELECT * FROM session_errors WHERE session_id = ? ORDER BY position ASC')
     .all(sessionId);
   return rows.map(rowToError);
 }

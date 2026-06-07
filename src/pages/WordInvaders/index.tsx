@@ -51,7 +51,10 @@ function spawnInvader(pool: PoolEntry[], config: InvaderConfig, id: number): Inv
 
 export function WordInvadersPage() {
   const showVirtualKeyboard = useSettings((s) => s.settings.showVirtualKeyboard);
-  const config: InvaderConfig = useMemo(() => ({ ...DEFAULT_INVADER_CONFIG, width: 720, height: 480 }), []);
+  const config: InvaderConfig = useMemo(
+    () => ({ ...DEFAULT_INVADER_CONFIG, width: 720, height: 480 }),
+    [],
+  );
   const [state, setState] = useState<GameState>(initialState);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [missLimit] = useState(20);
@@ -88,7 +91,12 @@ export function WordInvadersPage() {
       setState((s) => {
         if (s.status !== 'running') return s;
         const deltaMs = 100;
-        const { survivors, missed } = moveInvaders(s.invaders, deltaMs, config.fallSpeed, config.height);
+        const { survivors, missed } = moveInvaders(
+          s.invaders,
+          deltaMs,
+          config.fallSpeed,
+          config.height,
+        );
         let spawnTimer = s.spawnTimer + deltaMs;
         const newInvaders = [...survivors];
         if (spawnTimer >= config.spawnIntervalMs && newInvaders.length < config.maxOnScreen) {
@@ -158,7 +166,13 @@ export function WordInvadersPage() {
       }
       const won = destroyed >= DESTROY_TARGET;
       return {
-        ...s, typed, invaders, score, destroyed, totalAttempts, correctAttempts,
+        ...s,
+        typed,
+        invaders,
+        score,
+        destroyed,
+        totalAttempts,
+        correctAttempts,
         status: won ? 'gameover' : s.status,
         endTime: won ? Date.now() : s.endTime,
         won: won || s.won,
@@ -171,7 +185,10 @@ export function WordInvadersPage() {
   };
 
   const accuracy = getAccuracy(state.correctAttempts, state.totalAttempts);
-  const durationMs = state.endTime && state.startTime ? state.endTime - state.startTime : Date.now() - (state.startTime ?? Date.now());
+  const durationMs =
+    state.endTime && state.startTime
+      ? state.endTime - state.startTime
+      : Date.now() - (state.startTime ?? Date.now());
   const wpm = getWpm(state.destroyed, durationMs);
 
   const { savedId, saveError } = useGameSession({
@@ -192,7 +209,9 @@ export function WordInvadersPage() {
     <div className="mx-auto max-w-5xl space-y-4 p-8">
       <header>
         <h1 className="text-3xl font-bold">Word Invaders</h1>
-        <p className="mt-1 text-muted-foreground">五笔码打单词/字，击落入侵者 · 漏 {missLimit} 个结束 · 击落 {DESTROY_TARGET} 个获胜</p>
+        <p className="mt-1 text-muted-foreground">
+          五笔码打单词/字，击落入侵者 · 漏 {missLimit} 个结束 · 击落 {DESTROY_TARGET} 个获胜
+        </p>
       </header>
 
       {state.status === 'idle' && (
@@ -204,9 +223,13 @@ export function WordInvadersPage() {
             <ul className="list-disc pl-5 text-sm text-muted-foreground">
               <li>单字/词组从顶部下落，输入对应五笔码</li>
               <li>前缀匹配高亮蓝色，完全匹配后击落（+10/字）</li>
-              <li>漏 {missLimit} 个 → Game Over · 击落 {DESTROY_TARGET} 个获胜</li>
+              <li>
+                漏 {missLimit} 个 → Game Over · 击落 {DESTROY_TARGET} 个获胜
+              </li>
             </ul>
-            <Button onClick={handleStart} size="lg" className="w-full">开始游戏</Button>
+            <Button onClick={handleStart} size="lg" className="w-full">
+              开始游戏
+            </Button>
           </CardContent>
         </Card>
       )}
@@ -231,11 +254,15 @@ export function WordInvadersPage() {
                   </div>
                   <div>
                     <div className="text-muted-foreground">击落</div>
-                    <div className="text-lg font-semibold">{state.destroyed} / {DESTROY_TARGET}</div>
+                    <div className="text-lg font-semibold">
+                      {state.destroyed} / {DESTROY_TARGET}
+                    </div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">漏掉</div>
-                    <div className="text-lg font-semibold text-destructive">{state.missed} / {missLimit}</div>
+                    <div className="text-lg font-semibold text-destructive">
+                      {state.missed} / {missLimit}
+                    </div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">WPM</div>
@@ -264,13 +291,20 @@ export function WordInvadersPage() {
                 />
                 {showVirtualKeyboard && state.typed && (
                   <div className="text-xs text-muted-foreground">
-                    正在输入: <span className="font-mono font-semibold text-foreground">{state.typed}</span>
+                    正在输入:{' '}
+                    <span className="font-mono font-semibold text-foreground">{state.typed}</span>
                   </div>
                 )}
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={handleStart} size="sm">重新开始</Button>
+                  <Button variant="outline" onClick={handleStart} size="sm">
+                    重新开始
+                  </Button>
                   {state.status === 'paused' && (
-                    <Button variant="default" onClick={() => setState((s) => ({ ...s, status: 'running' }))} size="sm">
+                    <Button
+                      variant="default"
+                      onClick={() => setState((s) => ({ ...s, status: 'running' }))}
+                      size="sm"
+                    >
                       继续
                     </Button>
                   )}
@@ -312,7 +346,9 @@ export function WordInvadersPage() {
             {saveError !== null && (
               <div className="text-xs text-destructive">保存失败：{saveError}</div>
             )}
-            <Button onClick={handleStart} size="lg" className="w-full">再来一局</Button>
+            <Button onClick={handleStart} size="lg" className="w-full">
+              再来一局
+            </Button>
           </CardContent>
         </Card>
       )}

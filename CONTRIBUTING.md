@@ -11,6 +11,7 @@
 5. 创建 Pull Request
 
 请遵循：
+
 - [Conventional Commits](https://www.conventionalcommits.org/) 规范
 - 项目编码规范（见 [coding-standards.md](./docs/dev-guide/coding-standards.md)）
 - 测试覆盖率要求（见 [testing.md](./docs/dev-guide/testing.md)）

@@ -21,14 +21,12 @@ export const useSettings = create<SettingsState>()(
       initialized: false,
       init: (settings) => set({ settings, initialized: true }),
       setTheme: (theme) => set((s) => ({ settings: { ...s.settings, theme } })),
-      setAccentColor: (accentColor) =>
-        set((s) => ({ settings: { ...s.settings, accentColor } })),
+      setAccentColor: (accentColor) => set((s) => ({ settings: { ...s.settings, accentColor } })),
       setShowVirtualKeyboard: (showVirtualKeyboard) =>
         set((s) => ({ settings: { ...s.settings, showVirtualKeyboard } })),
       setSoundEnabled: (soundEnabled) =>
         set((s) => ({ settings: { ...s.settings, soundEnabled } })),
-      setSoundVolume: (soundVolume) =>
-        set((s) => ({ settings: { ...s.settings, soundVolume } })),
+      setSoundVolume: (soundVolume) => set((s) => ({ settings: { ...s.settings, soundVolume } })),
     }),
     {
       name: 'wubi-typemaster-settings',
