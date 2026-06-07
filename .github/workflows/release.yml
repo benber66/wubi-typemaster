@@ -133,14 +133,15 @@ jobs:
     needs: github-release
     runs-on: ubuntu-latest
     steps:
-      - name: Mirror repository
-        uses: yanglbme/gitee-repo-mirror@main
+      - uses: actions/checkout@v4
         with:
-          src: https://github.com/benber66/wubi-typemaster.git
-          dst: https://gitee.com/benber66/wubi-typemaster.git
-          dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
-          dst_token: ${{ secrets.GITEE_TOKEN }}
-          force: false
+          fetch-depth: 0
+
+      - name: Mirror to Gitee
+        run: |
+          git remote add gitee https://benber66:${{ secrets.GITEE_TOKEN }}@gitee.com/benber66/wubi-typemaster.git
+          git push gitee --force --mirror
+          git remote remove gitee
 
       - name: Sync Release assets to Gitee
         run: node scripts/sync-gitee-release.mjs
